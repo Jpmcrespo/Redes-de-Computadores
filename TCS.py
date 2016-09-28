@@ -3,6 +3,12 @@ import socket
 import sys
 BUFFER_SIZE=256
 
+
+
+
+
+
+
 def main():
 	port=-1
 	arguments=sys.argv
@@ -10,6 +16,7 @@ def main():
 	for i in range(len(arguments)):
 		if arguments[i]=="-p":
 			port= int(arguments[i+1])
+	languageList={'Ruski': 4096}
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
 	while(True):
@@ -21,7 +28,9 @@ def main():
 		print (command)
 		if command[0]=="ULQ":
 			print ("List request: "+socket.gethostbyaddr(Host_Address)[0]+ " "+ str(Host_Port))
-			Msg="list languages"
+			Msg= "ULR "+str(len(languageList))
+			for entry in languageList:
+				Msg+=" " + entry
 			UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 			
 

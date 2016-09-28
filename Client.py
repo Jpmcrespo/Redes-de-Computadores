@@ -10,8 +10,8 @@ def sendMsg(sock, ipAddress, port, message):
 
 	sock.sendto(message.encode(), (ipAddress, port))
 	response=sock.recv(BUFFER_SIZE)
-	print (response.decode())
-	return
+	return (response.decode())
+
 	
 def requestTRS(sock, ipAddress, port, word):
 	sock.connect((ipAddress,port))
@@ -30,13 +30,21 @@ def main():
 		elif arguments[i]=='-p':
 			port= arguments[i+1]
 		
-	#print ("name: "+name+ " port: "+port )
 	TCS_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	TRS_socket= socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 	while(True):
 		command= input(">").split()
 		if command[0]=="list":
-			sendMsg(TCS_socket, socket.gethostbyname(name), int(port), "ULQ")
+			lst=sendMsg(TCS_socket, socket.gethostbyname(name), int(port), "ULQ").split()
+			i=1
+			if lst[0]=="ULR" and lst[1]!="EOF" and lst[1]!="ERR":
+				for lang in lst[2:]:
+					print (str(i)+"- "+lang)
+					i+=1
+			else:
+				print (lst[0] + " "+ lst[1])
+
+
 
 		elif command[0]=="request":
 			requestTRS(TRS_socket,"127.0.0.1",58000, command[3])
