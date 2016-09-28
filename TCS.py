@@ -11,7 +11,7 @@ def main():
 		if arguments[i]=="-p":
 			port= int(arguments[i+1])
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	UDP_socket.bind(("127.0.0.1", port))
+	UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
 	while(True):
 
 		data= UDP_socket.recvfrom(BUFFER_SIZE)
@@ -21,6 +21,8 @@ def main():
 		print (command)
 		if command[0]=="ULQ":
 			print ("List request: "+socket.gethostbyaddr(Host_Address)[0]+ " "+ str(Host_Port))
+			Msg="list languages"
+			UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 			
 
 		elif command[0]=="SRG":

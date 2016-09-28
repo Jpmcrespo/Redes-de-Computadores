@@ -5,21 +5,17 @@ import sys
 UDP_IP="127.0.0.1"
 BUFFER_SIZE=256
 
-def commandList(name, port):
+def sendMsg(sock, ipAddress, port, message):
 
-	Message="ULQ"
-	TCS_ip=socket.gethostbyname(name)
 
-	TCS_port=port
-	TCS_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-	TCS_socket.sendto(Message.encode(), (TCS_ip, TCS_port))
-
-	TCS_response=TCS_socket.recv(BUFFER_SIZE)
-
-	print (TCS_response)
+	sock.sendto(message.encode(), (ipAddress, port))
+	response=sock.recv(BUFFER_SIZE)
+	print (response.decode())
 	return
 	
+def requestTRS(sock, ipAddress, port, word):
+	sock.connect((ipAddress,port))
+	sock.send("TRQ t "+str(len(word.split))+" "+ word )
 
 
 
@@ -35,16 +31,16 @@ def main():
 			port= arguments[i+1]
 		
 	#print ("name: "+name+ " port: "+port )
+	TCS_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	TRS_socket= socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 	while(True):
-		command= input(">")
-		if command=="list":
-			print ("list")
-			commandList(name, int(port))
+		command= input(">").split()
+		if command[0]=="list":
+			sendMsg(TCS_socket, socket.gethostbyname(name), int(port), "ULQ")
 
-		elif command=="request":
-			print ("request")
-		elif command=="exit":
-			print ("exit")
+		elif command[0]=="request":
+			requestTRS(TRS_socket,"127.0.0.1",58000, command[3])
+		elif command[0]=="exit":
 			return
 		else:
 			print ("command not found")
