@@ -5,6 +5,11 @@ import sys
 UDP_IP="127.0.0.1"
 TRS_IP=socket.gethostbyname(socket.gethostname())
 BUFFER_SIZE=256
+invalidArgs='\nInvalid arguments.\nusage: python3 Client.py [-n TCSname] [-p TCSport]'
+
+class ArgumentsError(Exception):
+	def __init__(self, message):
+		self.message=message
 
 def sendMsg(sock, ipAddress, port, message):
 
@@ -25,15 +30,20 @@ def requestTRS(sock, ipAddress, port, word):
 
 
 def main():
-	name=""
-	port=-1
+	name="localhost"
+	port=58056
 	arguments=sys.argv
-	for i in range(len(arguments)):
-		if arguments[i]=="-n":
+	n,p=1,1
+	for i in range(1,len(arguments),2):
+		if arguments[i]=="-n" and n:
 			name= arguments[i+1]
-		elif arguments[i]=='-p':
+			n=0
+		elif arguments[i]=='-p' and p:
 			port= arguments[i+1]
-		
+			n=0
+		else:
+			raise ArgumentsError(invalidArgs)
+	print (name, port)
 	TCS_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	TRS_socket= socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 	while(True):

@@ -4,7 +4,7 @@ import sys
 
 BUFFER_SIZE=256
 TCS_ip=socket.gethostbyname(socket.gethostname())
-TCS_port=58000
+TCS_port=58056
 invalidArgs='\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]'
 
 
@@ -85,7 +85,7 @@ def main():
 		raise ArgumentsError (invalidArgs)
 
 	i=2
-	p,n,e=1
+	p,n,e=1,1,1
 	while i<len(arguments):
 		if arguments[i]=="-p" and p:
 			port= int(arguments[i+1])
@@ -101,7 +101,7 @@ def main():
 		i+=2
 
 	
-	#RegisterServer(language,port)
+	RegisterServer(language,port)
 	translate(language,port)
 
 	
