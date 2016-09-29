@@ -35,7 +35,8 @@ def main():
 	while(True):
 		command= input(">").split()
 		if command[0]=="list":
-			lst=sendMsg(TCS_socket, socket.gethostbyname(name), int(port), "ULQ").split()
+			Msg="ULQ\n"
+			lst=sendMsg(TCS_socket, socket.gethostbyname(name), int(port), Msg).split()
 			i=1
 			if lst[0]=="ULR" and lst[1]!="EOF" and lst[1]!="ERR":
 				for lang in lst[2:]:

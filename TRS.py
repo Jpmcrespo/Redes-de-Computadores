@@ -3,11 +3,12 @@ import socket
 import sys
 
 BUFFER_SIZE=256
-TCS_ip=socket.gethostbyname("PAMELA-BEAST")
+TCS_ip=socket.gethostbyname(socket.gethostname())
 TCS_port=58000
+invalidArgs='\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]'
 
 
-class InputError(Exception):
+class ArgumentsError(Exception):
 	def __init__(self, message):
 		self.message=message
 
@@ -76,16 +77,22 @@ def main():
 	arguments=sys.argv
 	language= arguments[1]
 	if len(arguments)%2!=0:
-		raise InputError ('\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]')
+		raise ArgumentsError (invalidArgs)
 
 	i=2
+	p,n,e=1
 	while i<len(arguments):
-		if arguments[i]=="-p":
+		if arguments[i]=="-p" and p:
 			port= int(arguments[i+1])
-		elif arguments[i]=="-n":
+			p=0
+		elif arguments[i]=="-n" and n:
 			TCS_name=arguments[i+1]
-		elif arguments[i]=="-e":
+			n=0
+		elif arguments[i]=="-e" and e:
 			TCS_port=arguments[i+1]
+			e=0
+		else:
+			raise InputError (invalidArgs)
 		i+=2
 
 	

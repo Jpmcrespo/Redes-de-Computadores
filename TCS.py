@@ -5,17 +5,18 @@ BUFFER_SIZE=256
 
 
 def main():
-	port=-1
+	port=58056
 	arguments=sys.argv
 	
-	for i in range(len(arguments)):
-		if arguments[i]=="-p":
-			port= int(arguments[i+1])
+	if len(arguments)>1:
+		if arguments[1]=="-p":
+			port=int(arguments[2])
 
 
 	languageList={}
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
+
 	while(True):
 
 		data= UDP_socket.recvfrom(BUFFER_SIZE)
