@@ -4,7 +4,7 @@ import sys
 
 BUFFER_SIZE=256
 TCS_ip=socket.gethostbyname(socket.gethostname())
-TCS_port=58000
+TCS_port=58056
 invalidArgs='\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]'
 
 
@@ -20,7 +20,7 @@ def RegisterServer(language,port):
 
 	RegMsg="SRG "+ language+ " "+ socket.gethostname()+" "+ str(port)
 	UDP_socket.sendto(RegMsg.encode(), (TCS_ip, TCS_port))
-	
+
 
 	data= UDP_socket.recvfrom(BUFFER_SIZE)
 	UDP_socket.close()
@@ -50,7 +50,7 @@ def translate(language,port):
 	received=received.split()
 	if received[0]=="TRQ":
 		if received[1]=="t":
-			
+
 			for word in received[3:]:
 				result+=getTranslation(language, word)+" "
 			result=result.strip()
@@ -77,7 +77,7 @@ def getTranslation(language, word):
 def main():
 	port=59000
 	TCSname="localhost"
-	
+
 
 	arguments=sys.argv
 	language= arguments[1]
@@ -85,7 +85,7 @@ def main():
 		raise ArgumentsError (invalidArgs)
 
 	i=2
-	p,n,e=1
+	p,n,e=1,1,1
 	while i<len(arguments):
 		if arguments[i]=="-p" and p:
 			port= int(arguments[i+1])
@@ -100,14 +100,14 @@ def main():
 			raise InputError (invalidArgs)
 		i+=2
 
-	
-	#RegisterServer(language,port)
+
+	RegisterServer(language,port)
 	translate(language,port)
 
-	
 
 
-	
+
+
 
 
 

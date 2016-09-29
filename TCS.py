@@ -13,7 +13,7 @@ def main():
 	port=58056
 	arguments=sys.argv
 
-	
+
 	if len(arguments)>3:
 		raise ArgumentsError(invalidArgs)
 
@@ -27,7 +27,6 @@ def main():
 	UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
 
 	while(True):
-
 		data= UDP_socket.recvfrom(BUFFER_SIZE)
 		command= data[0].decode().split()
 		Host_Address= data[1][0]
@@ -39,7 +38,7 @@ def main():
 			for entry in languageList:
 				Msg+=" " + entry
 			UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
-			
+
 
 		elif command[0]=="SRG":
 			print ("SRG")
@@ -54,7 +53,7 @@ def main():
 			except:
 				print ("hi")
 
-		
+
 
 
 
