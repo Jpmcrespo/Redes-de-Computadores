@@ -3,19 +3,26 @@ import socket
 import sys
 
 BUFFER_SIZE=256
-TCS_ip=socket.gethostbyname("lab10p8")
-TCS_port=49000
+TCS_ip=socket.gethostbyname("PAMELA-BEAST")
+TCS_port=58000
+
+
+class InputError(Exception):
+	def __init__(self, message):
+		self.message=message
+
 
 
 def RegisterServer(language,port):
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
 
-	RegMsg="SRG "+ language+ " "+ socket.gethostbyaddr("127.0.0.1")[0]+" "+ str(port)
+	RegMsg="SRG "+ language+ " "+ socket.gethostname()+" "+ str(port)
 	UDP_socket.sendto(RegMsg.encode(), (TCS_ip, TCS_port))
 	
 
 	data= UDP_socket.recvfrom(BUFFER_SIZE)
+	UDP_socket.close()
 	command= data[0].decode().split()
 	Host_Address= data[1][0]
 	Host_Port=data[1][1]
@@ -62,13 +69,25 @@ def getTranslation(language, word):
 
 
 def main():
-	port=-1
+	port=59000
+	TCSname="localhost"
+	
+
 	arguments=sys.argv
 	language= arguments[1]
+	if len(arguments)%2!=0:
+		raise InputError ('\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]')
 
-	for i in range(len(arguments)):
+	i=2
+	while i<len(arguments):
 		if arguments[i]=="-p":
 			port= int(arguments[i+1])
+		elif arguments[i]=="-n":
+			TCS_name=arguments[i+1]
+		elif arguments[i]=="-e":
+			TCS_port=arguments[i+1]
+		i+=2
+
 	
 	RegisterServer(language,port)
 	translate(language,port)

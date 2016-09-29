@@ -4,11 +4,6 @@ import sys
 BUFFER_SIZE=256
 
 
-
-
-
-
-
 def main():
 	port=-1
 	arguments=sys.argv
@@ -16,7 +11,9 @@ def main():
 	for i in range(len(arguments)):
 		if arguments[i]=="-p":
 			port= int(arguments[i+1])
-	languageList={'Ruski': 4096}
+
+
+	languageList={}
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
 	while(True):
@@ -36,9 +33,16 @@ def main():
 
 		elif command[0]=="SRG":
 			print ("SRG")
-			OkMsg="SRR OK"
-			UDP_socket.sendto(OkMsg.encode(), (Host_Address, Host_Port))
-			print("+"+command[1]+" "+command[2]+" "+ command[3])
+			Msg="SRR"
+			try:
+				if command[1] in languageList:
+					Msg+=" NOK"
+				else:
+					Msg+=" OK"
+					print("+"+command[1]+" "+command[2]+" "+ command[3])
+				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
+			except:
+				print ("hi")
 
 		
 
