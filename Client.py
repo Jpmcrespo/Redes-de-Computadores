@@ -11,8 +11,8 @@ class ArgumentsError(Exception):
 	def __init__(self, message):
 		self.message=message
 
-def sendMsg(sock, ipAddress, port, message):
 
+def sendMsg(sock, ipAddress, port, message):
 	sock.sendto(message.encode(), (ipAddress, port))
 	response=sock.recv(BUFFER_SIZE)
 	return (response.decode())
@@ -43,6 +43,7 @@ def main():
 			n=0
 		else:
 			raise ArgumentsError(invalidArgs)
+
 	print (name, port)
 	TCS_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	TRS_socket= socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -50,15 +51,13 @@ def main():
 		command= input(">").split()
 		if command[0]=="list":
 			Msg="ULQ"
-			lst=sendMsg(TCS_socket, socket.gethostbyname(socket.gethostname()), int(port), Msg).split()
+			lst=sendMsg(TCS_socket, socket.gethostbyname(name), int(port), Msg).split()
 			i=1
 			if lst[0]=="ULR" and lst[1]!="EOF" and lst[1]!="ERR":
 				languages=lst[2:]
 				for lang in languages:
 					print (str(i)+"- "+lang)
 					i+=1
-
-
 			else:
 				print (lst[0] + " "+ lst[1])
 

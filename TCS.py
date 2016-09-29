@@ -1,6 +1,7 @@
 #Translation Contact Server
 import socket
 import sys
+import traceback
 BUFFER_SIZE=256
 invalidArgs='\nInvalid arguments.\nusage: python3 TCS.py [-p TCSport]'
 
@@ -18,10 +19,16 @@ def main():
 	if len(arguments)>3:
 		raise ArgumentsError(invalidArgs)
 
-	if len(arguments)>1:
-		if arguments[1]=="-p":
-			port=int(arguments[2])
-
+	try:
+		if len(arguments)>1:
+			if arguments[1]=="-p":
+				port=int(arguments[2])
+			else:
+				raise ArgumentsError(invalidArgs)
+	except ValueError as e:
+		traceback.print_exc()
+		print ("port must be an integer between 0-65535")
+		sys.exit(-1)
 
 	languageList={}
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -50,6 +57,7 @@ def main():
 				else:
 					Msg+=" OK"
 					print("+"+command[1]+" "+command[2]+" "+ command[3])
+					languageList[command[1]]=command[2]
 				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 			except IndexError:
 				Msg="SRR ERR"
