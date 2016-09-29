@@ -100,7 +100,6 @@ def main():
 			raise InputError (invalidArgs)
 		i+=2
 
-
 	RegisterServer(language,port)
 	translate(language,port)
 

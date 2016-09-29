@@ -4,6 +4,7 @@ import sys
 BUFFER_SIZE=256
 invalidArgs='\nInvalid arguments.\nusage: python3 TCS.py [-p TCSport]'
 
+
 class ArgumentsError(Exception):
 	def __init__(self, message):
 		self.message=message
@@ -50,8 +51,9 @@ def main():
 					Msg+=" OK"
 					print("+"+command[1]+" "+command[2]+" "+ command[3])
 				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
-			except:
-				print ("hi")
+			except IndexError:
+				Msg="SRR ERR"
+				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 
 
 
