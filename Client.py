@@ -2,8 +2,6 @@
 import socket
 import sys
 
-UDP_IP="127.0.0.1"
-TRS_IP=socket.gethostbyname(socket.gethostname())
 BUFFER_SIZE=256
 invalidArgs='\nInvalid arguments.\nusage: python3 Client.py [-n TCSname] [-p TCSport]'
 
@@ -29,6 +27,7 @@ def requestTRS(sock, ipAddress, port, word):
 
 
 def main():
+	words=""
 	name="localhost"
 	port=58056
 	arguments=sys.argv
@@ -43,6 +42,8 @@ def main():
 			n=0
 		else:
 			raise ArgumentsError(invalidArgs)
+
+	LanguageList=[]
 	print (name, port)
 	TCS_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	TRS_socket= socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -50,11 +51,12 @@ def main():
 		command= input(">").split()
 		if command[0]=="list":
 			Msg="ULQ"
-			lst=sendMsg(TCS_socket, socket.gethostbyname(socket.gethostname()), int(port), Msg).split()
+			lst=sendMsg(TCS_socket, socket.gethostbyname(name), int(port), Msg).split()
 			i=1
 			if lst[0]=="ULR" and lst[1]!="EOF" and lst[1]!="ERR":
 				languages=lst[2:]
 				for lang in languages:
+					LanguageList+=[lang]
 					print (str(i)+"- "+lang)
 					i+=1
 
@@ -65,7 +67,15 @@ def main():
 
 
 		elif command[0]=="request":
-			requestTRS(TRS_socket,TRS_IP,58001, command[3])
+			if command[2]=="t":
+				Msg="UNQ "+ LanguageList[int(command[1])-1]
+				TRS_credentials=sendMsg(TCS_socket, socket.gethostbyname(name), int(port), Msg).split()
+				TRS_IP=TRS_credentials[2]
+				TRS_port=int(TRS_credentials[3])
+				for word in command[3:]:
+					words+=word+" "
+				words=words.strip()
+				requestTRS(TRS_socket,TRS_IP,TRS_port, words)
 		elif command[0]=="exit":
 			return
 		else:
