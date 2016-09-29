@@ -2,12 +2,21 @@
 import socket
 import sys
 BUFFER_SIZE=256
+invalidArgs='\nInvalid arguments.\nusage: python3 TCS.py [-p TCSport]'
+
+class ArgumentsError(Exception):
+	def __init__(self, message):
+		self.message=message
 
 
 def main():
 	port=58056
 	arguments=sys.argv
+
 	
+	if len(arguments)>3:
+		raise ArgumentsError(invalidArgs)
+
 	if len(arguments)>1:
 		if arguments[1]=="-p":
 			port=int(arguments[2])
