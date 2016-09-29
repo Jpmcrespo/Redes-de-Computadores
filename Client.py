@@ -3,6 +3,7 @@ import socket
 import sys
 
 UDP_IP="127.0.0.1"
+TRS_IP=socket.gethostbyname(socket.gethostname())
 BUFFER_SIZE=256
 
 def sendMsg(sock, ipAddress, port, message):
@@ -15,7 +16,10 @@ def sendMsg(sock, ipAddress, port, message):
 	
 def requestTRS(sock, ipAddress, port, word):
 	sock.connect((ipAddress,port))
-	sock.send("TRQ t "+str(len(word.split))+" "+ word )
+	message = "TRQ t "+str(len(word.split()))+" "+ word 
+	sock.send(message.encode())
+	response=sock.recv(BUFFER_SIZE)
+	print(response.decode())
 
 
 
@@ -48,7 +52,7 @@ def main():
 
 
 		elif command[0]=="request":
-			requestTRS(TRS_socket,"127.0.0.1",58000, command[3])
+			requestTRS(TRS_socket,TRS_IP,58001, command[3])
 		elif command[0]=="exit":
 			return
 		else:

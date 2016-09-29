@@ -38,19 +38,24 @@ def RegisterServer(language,port):
 
 
 def translate(language,port):
+	result=""
 	TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))
 	TCP_socket.listen(1)
-	connection=TCP_socket.accept()
+	connection , address=TCP_socket.accept()
 	print("Accepted")
-	received= TCP_socket.recv(BUFFER_SIZE)
+	received= connection.recv(BUFFER_SIZE)
+	print(received.decode())
+	received=received.decode()
 	received=received.split()
 	if received[0]=="TRQ":
 		if received[1]=="t":
+			
 			for word in received[3:]:
 				result+=getTranslation(language, word)+" "
 			result=result.strip()
-			connection.send("TRR t "+received[2]+" "+result)
+			message="TRR t "+received[2]+" "+result
+			connection.send(message.encode())
 
 
 
@@ -96,7 +101,7 @@ def main():
 		i+=2
 
 	
-	RegisterServer(language,port)
+	#RegisterServer(language,port)
 	translate(language,port)
 
 	
