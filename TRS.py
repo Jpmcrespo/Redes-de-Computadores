@@ -15,6 +15,7 @@ class ArgumentsError(Exception):
 
 
 def RegisterServer(language,port):
+	#passerelle?
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
 
@@ -38,6 +39,8 @@ def RegisterServer(language,port):
 
 
 def translate(language,port):
+	#FaltaPasserelle
+
 	result=""
 	TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))
@@ -48,7 +51,7 @@ def translate(language,port):
 	print(received.decode())
 	received=received.decode()
 	received=received.split()
-	if received[0]=="TRQ":
+	if received[0]=="TRQ":			#outros casos
 		if received[1]=="t":
 
 			for word in received[3:]:
@@ -78,6 +81,7 @@ def main():
 	port=59000
 	TCSname="localhost"
 
+	#meter TCS em dicionario e validar os argumentos
 
 	arguments=sys.argv
 	language= arguments[1]
@@ -101,6 +105,9 @@ def main():
 		i+=2
 
 	RegisterServer(language,port)
+
+	#while
+
 	translate(language,port)
 
 
