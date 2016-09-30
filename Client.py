@@ -2,7 +2,7 @@
 import socket
 import sys
 
-BUFFER_SIZE=256
+BUFFER_SIZE=1024
 ListMSG="ULQ"
 invalidArgs='\nInvalid arguments.\nusage: python3 Client.py [-n TCSname] [-p TCSport]'
 
@@ -21,6 +21,20 @@ def requestTRS(TRS, word):
 	TRS['socket'].connect((TRS['ip'],TRS['port']))
 	message = "TRQ t "+str(len(word.split()))+" "+ word
 	return sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
+
+def requestFile(TRS,filename,size):
+	file=open(filename,"rb")
+	TRS['socket'].connect((TRS['ip'],TRS['port']))
+	message= "TRQ f " + filename + " " + str(size) + " "
+	TRS['socket'].send(message.encode())
+	print("Sending")
+	while(size>0):
+		buff=file.read(BUFFER_SIZE)
+		TRS['socket'].send(buff)
+		print(".")
+		size-=1024
+	print("done")
+		
 
 
 def updateLanguageList(TCS):
@@ -89,6 +103,8 @@ def main():
 			if command[2]=="t":
 				response=requestTRS(TRS, " ".join(command[3:]))
 				print (response)
+			elif command[2]=="f":
+				requestFile(TRS,command[3],int(command[4]))
 				
 		elif command[0]=="exit":
 			return

@@ -2,7 +2,7 @@
 import socket
 import sys
 
-BUFFER_SIZE=256
+BUFFER_SIZE=1024	
 TCS_ip=socket.gethostbyname(socket.gethostname())
 TCS_port=58056
 invalidArgs='\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]'
@@ -48,9 +48,12 @@ def translate(language,port):
 	connection , address=TCP_socket.accept()
 	print("Accepted")
 	received= connection.recv(BUFFER_SIZE)
-	print(received.decode())
-	received=received.decode()
 	received=received.split()
+	print ("LENGTH:" + str(len(received)))
+	received[0]=received[0].decode()
+	received[1]=received[1].decode()
+	received[2]=received[2].decode()
+	received[3]=received[3].decode()
 	if received[0]=="TRQ":			#outros casos
 		if received[1]=="t":
 
@@ -59,6 +62,22 @@ def translate(language,port):
 			result=result.strip()
 			message="TRR t "+received[2]+" "+result
 			connection.send(message.encode())
+		elif received[1]=="f":
+			print("LETS GO BABY")
+			file=open("popo.png","wb")
+			size=int(received[3])
+			print("receiving " +str(size)+" bytes")
+			file.write(extradata)
+			size-=1000
+			while(size>0):
+				print(".")
+				buff=connection.recv(BUFFER_SIZE)
+				file.write(buff)
+				size-=1024
+			print("done")
+
+
+
 
 
 

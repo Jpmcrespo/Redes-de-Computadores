@@ -2,7 +2,7 @@
 import socket
 import sys
 import traceback
-BUFFER_SIZE=256
+BUFFER_SIZE=1024	
 invalidArgs='\nInvalid arguments.\nusage: python3 TCS.py [-p TCSport]'
 
 
