@@ -1,6 +1,7 @@
 #Translation Server
 import socket
 import sys
+import os
 
 BUFFER_SIZE=1024	
 
@@ -75,10 +76,12 @@ def sendBack(Client, language, filename):
 	size=os.path.getsize(filename)
 	message= "TRR f " + filename + " " + str(size) + " "
 	Client['socket'].send(message.encode())
+	print("Sending back "+str(dize)+" bytes")
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
-		TRS['socket'].send(buff)
+		Client['socket'].send(buff)
 		size-=BUFFER_SIZE
+	print("done")
 
 
 

@@ -32,11 +32,40 @@ def requestFile(TRS,filename):
 	message= "TRQ f " + filename + " " + str(size) + " "
 
 	TRS['socket'].send(message.encode())
-
+	print(str(size)+" bytes to Transmit")
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
 		TRS['socket'].send(buff)
 		size-=BUFFER_SIZE
+	print("done")
+
+def receiveFile(TRS, name, size, extradata):
+	file=open(name.rsplit(".",1)[0]+"RECEIVED"+"."+name.rsplit(".",1)[1],"wb")
+
+	print("receiving " +str(size)+" bytes")
+	file.write(extradata)
+	while(size>0):
+		buff=TRS['socket'].recv(BUFFER_SIZE)
+		file.write(buff)
+		size-=BUFFER_SIZE
+	print("done")
+	print("END OF FILE TRANSLATION")
+
+def receiveTransFile(TRS):
+	received= TRS['socket'].recv(BUFFER_SIZE)
+	received=received.split(b' ',4)
+	for i in range(4):
+		received[i]=received[i].decode()
+
+	if received[0]=="TRR":			#outros casos, try except
+		if received[1]=="f":
+			extradata=received[-1]
+			receiveFile(TRS, received[2], int(received[3]), extradata)
+
+
+
+
+
 
 
 
@@ -116,6 +145,8 @@ def main():
 				print (response)
 			elif command[2]=="f":
 				requestFile(TRS,command[3])
+				receiveTransFile(TRS)
+
 				
 		elif command[0]=="exit":
 			return
