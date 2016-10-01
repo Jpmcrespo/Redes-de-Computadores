@@ -19,19 +19,12 @@ def sendMsg(sock, ipAddress, port, message):
 
 
 def RegisterServer(TCS, language,port):
-	#passerelle?
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	#UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
-
+	#no need to bind anything because the system allready binds sockets that send stuff
+	#you only need to bind sockets that receive before sending, which is not the case
 	RegMsg="SRG "+ language+ " "+ socket.gethostname()+" "+ str(port)
-	UDP_socket.sendto(RegMsg.encode(), (socket.gethostbyname(socket.gethostname()), TCS['port']))
-
-	command,(Host_Address,Host_Port)= UDP_socket.recvfrom(BUFFER_SIZE)
-	command= command.decode().split()
-
+	command=sendMsg(UDP_socket, TCS['ip'], TCS['port'], RegMsg).split()
 	UDP_socket.close()
-
-	
 
 	if command[0]=="SRR":
 		if command[1]=="OK":
@@ -43,43 +36,81 @@ def RegisterServer(TCS, language,port):
 			sys.exit()
 
 
+def getTranslation(file, word):
+	for line in file:
+		trans=line.split()
+		if word==trans[0]:
+			return trans[1]
+	#o que acontece quando falha scrubs??
+
+
+def translateWordList(Client, language, wordlist):
+	result=""
+	langFile= open(language, 'r')
+	for word in wordlist:
+		result+=getTranslation(langFile, word)+" "
+	result=result.strip()
+	message="TRR t "+str(len(wordlist))+" "+result
+	Client['socket'].send(message.encode())
+
+
+def receiveFile(Client, size, extradata):
+	file=open("TRSreceived.png","wb")
+
+	print("receiving " +str(size)+" bytes")
+	file.write(extradata)
+	while(size>0):
+		buff=Client['socket'].recv(BUFFER_SIZE)
+		file.write(buff)
+		size-=BUFFER_SIZE
+	print("done")
+
+
+
+
+def sendBack(Client, language, filename):
+	langFile= open(language+"Img", 'r')
+	filename=getTranslation(langFile, filename)
+	file=open(filename,"rb")
+	size=os.path.getsize(filename)
+	message= "TRR f " + filename + " " + str(size) + " "
+	Client['socket'].send(message.encode())
+	while(size>0):
+		buff=file.read(BUFFER_SIZE)
+		TRS['socket'].send(buff)
+		size-=BUFFER_SIZE
+
+
+
+
 def translate(language,port):
 	#FaltaPasserelle
-
-	result=""
+	Client={}
 	TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))
 	TCP_socket.listen(1)
-	connection , address=TCP_socket.accept()
-	print("Accepted")
-	received= connection.recv(BUFFER_SIZE)
-	received=received.split()
-	print ("LENGTH:" + str(len(received)))
-	received[0]=received[0].decode()
-	received[1]=received[1].decode()
-	received[2]=received[2].decode()
-	received[3]=received[3].decode()
-	if received[0]=="TRQ":			#outros casos
+	Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
+
+	received= Client['socket'].recv(BUFFER_SIZE)
+	received=received.split(b' ',4)
+
+	for i in range(4):
+		received[i]=received[i].decode()
+
+	if received[0]=="TRQ":			#outros casos, try except
 		if received[1]=="t":
 
-			for word in received[3:]:
-				result+=getTranslation(language, word)+" "
-			result=result.strip()
-			message="TRR t "+received[2]+" "+result
-			connection.send(message.encode())
+			translateWordList(Client, language, received[3].split())
+
+			
+
 		elif received[1]=="f":
-			print("LETS GO BABY")
-			file=open("popo.png","wb")
-			size=int(received[3])
-			print("receiving " +str(size)+" bytes")
-			file.write(extradata)
-			size-=1000
-			while(size>0):
-				print(".")
-				buff=connection.recv(BUFFER_SIZE)
-				file.write(buff)
-				size-=1024
-			print("done")
+
+			extradata=received[-1]
+			receiveFile(Client, int(received[3]), extradata)
+			sendBack(Client, language, received[2])
+
+			
 
 
 
@@ -116,13 +147,7 @@ def validateArgs(TCS):
 
 
 
-def getTranslation(language, word):
-	file= open(language, 'r')
-	for line in file:
-		trans=line.split()
-		if word==trans[0]:
-			return trans[1]
-	#o que acontece quando falha scrubs??
+
 
 
 
@@ -130,16 +155,15 @@ def getTranslation(language, word):
 
 def main():
 	language=sys.argv[1]
-	TCS={'name':'localhost','port':58056}
+	TCS={'name':socket.gethostname(),'port':58056}
 	TCS['ip']=socket.gethostbyname(TCS['name'])
 
 	port=validateArgs(TCS)
-	print (TCS, port)
 	RegisterServer(TCS, language,port)
 
-	#while
-
-	translate(language,port)
+	#falta fazer a coisa quando se faz CTRL-C
+	while(1):
+		translate(language,port)
 
 
 

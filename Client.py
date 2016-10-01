@@ -23,22 +23,28 @@ def requestTRS(TRS, word):
 	message = "TRQ t "+str(len(word.split()))+" "+ word
 	return sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
 
+
 def requestFile(TRS,filename):
 	file=open(filename,"rb")
-	size=os.path.getsize('./pepe.png')
+	size=os.path.getsize(filename)
 
 	TRS['socket'].connect((TRS['ip'],TRS['port']))
 	message= "TRQ f " + filename + " " + str(size) + " "
+
 	TRS['socket'].send(message.encode())
 
-	print("Sending")
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
 		TRS['socket'].send(buff)
-		print(".")
-		size-=1024
-	print("done")
+		size-=BUFFER_SIZE
+
+
+
+
+	
+
 		
+
 
 
 def updateLanguageList(TCS):
@@ -94,7 +100,6 @@ def main():
 
 	languages=[]
 	#print (TCS['name'], TCS['port'])
-	TRSsocket= socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
 	while(True):
 		command= input(">").split()
@@ -104,7 +109,7 @@ def main():
 		elif command[0]=="request":
 
 			TRS=requestTRSCred(TCS, languages[int(command[1])-1])
-			TRS['socket']=TRSsocket
+			TRS['socket']=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
 			if command[2]=="t":
 				response=requestTRS(TRS, " ".join(command[3:]))
