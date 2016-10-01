@@ -4,31 +4,60 @@ import sys
 import traceback
 BUFFER_SIZE=1024	
 invalidArgs='\nInvalid arguments.\nusage: python3 TCS.py [-p TCSport]'
+portMsg="port must be an integer between 0-65535"
 
 
 class ArgumentsError(Exception):
 	def __init__(self, message):
 		self.message=message
 
+def sendList(sock, ipAddress, port, lst):
+	print ("List request: "+socket.gethostbyaddr(ipAddress)[0]+ " "+ str(port))
+	Msg= "ULR "+str(len(lst))
+	for entry in lst:
+		Msg+=" " + entry
+	sock.sendto(Msg.encode(), (ipAddress, port))
 
-def main():
-	port=58056
+
+
+def RegisterServer(language, name, port, LanguageList ):
+	Msg="SRR"
+	if language in LanguageList:
+		Msg+=" NOK"
+	else:
+		Msg+=" OK"
+		print("+"+language+" "+name+" "+port)
+		LanguageList[language]=[name,port]
+	return Msg
+	
+
+
+def validateArgs():
 	arguments=sys.argv
-
-
+	port=58056
 	if len(arguments)>3:
 		raise ArgumentsError(invalidArgs)
 
 	try:
 		if len(arguments)>1:
 			if arguments[1]=="-p":
-				port=int(arguments[2])
-			else:
-				raise ArgumentsError(invalidArgs)
+				port=int(arguments[2])  
+				return
+			raise ArgumentsError(invalidArgs)
 	except ValueError as e:
 		traceback.print_exc()
-		print ("port must be an integer between 0-65535")
+		print (portMsg)
 		sys.exit(-1)
+	except:
+		raise ArgumentsError(invalidArgs)
+	return port
+
+
+
+
+def main():
+	port=validateArgs()
+		
 
 	LanguageList={}
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -36,35 +65,26 @@ def main():
 
 	while(True):
 		#passerelle pah isto ta mm horrivel vv
-		data= UDP_socket.recvfrom(BUFFER_SIZE)
-		command= data[0].decode().split()
-		Host_Address= data[1][0]
-		Host_Port=data[1][1]
+		command,(Host_Address,Host_Port)= UDP_socket.recvfrom(BUFFER_SIZE)
+		command= command.decode().split()
+
 		print (command)
 		if command[0]=="ULQ":
-			print ("List request: "+socket.gethostbyaddr(Host_Address)[0]+ " "+ str(Host_Port))
-			Msg= "ULR "+str(len(LanguageList))
-			for entry in LanguageList:
-				Msg+=" " + entry
-			UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 
+			sendList(UDP_socket, Host_Address, Host_Port, LanguageList)
+			
 		elif command[0]=="UNQ":
+
 			Msg="UNR "+ command[1] + " " + LanguageList[command[1]][0] + " " + LanguageList[command[1]][1]
 			UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 
 		elif command[0]=="SRG":
-			print ("SRG")
-			Msg="SRR"
+
 			try:
-				if command[1] in LanguageList:
-					Msg+=" NOK"
-				else:
-					Msg+=" OK"
-					print("+"+command[1]+" "+command[2]+" "+ command[3])
-					LanguageList[command[1]]=[command[2],command[3]]
-				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
-			except IndexError:
+				Msg=RegisterServer(command[1], command[2], command[3], LanguageList)
+			except Exception:
 				Msg="SRR ERR"
+			finally:
 				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 
 

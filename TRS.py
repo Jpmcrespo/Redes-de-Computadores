@@ -3,10 +3,9 @@ import socket
 import sys
 
 BUFFER_SIZE=1024	
-TCS_ip=socket.gethostbyname(socket.gethostname())
-TCS_port=58056
-invalidArgs='\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]'
 
+invalidArgs='\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]'
+portMsg="port must be an integer between 0-65535"
 
 class ArgumentsError(Exception):
 	def __init__(self, message):
@@ -79,8 +78,34 @@ def translate(language,port):
 
 
 
+def validateArgs(TCS):
+	arguments=sys.argv
+	
+	if len(arguments)%2!=0:
+		raise ArgumentsError (invalidArgs)
 
-
+	i=2
+	p,n,e=1,1,1
+	try:
+		while i<len(arguments):
+			if arguments[i]=="-p" and p:
+				TCS['port']= int(arguments[i+1])
+				p=0
+			elif arguments[i]=="-n" and n:
+				TCS['name']=arguments[i+1]
+				n=0
+			elif arguments[i]=="-e" and e:
+				TCS['port']=arguments[i+1]
+				e=0
+			else:
+				raise InputError (invalidArgs)
+			i+=2
+	except ValueError as e:
+		traceback.print_exc()
+		print ("port must be an integer between 0-65535")
+		sys.exit(-1)
+	except:
+		raise ArgumentsError(invalidArgs)
 
 
 
@@ -98,31 +123,11 @@ def getTranslation(language, word):
 
 def main():
 	port=59000
-	TCSname="localhost"
+	TCS={'name':'localhost','port':58056, socket.gethostbyname(TCS['name'])}
 
 	#meter TCS em dicionario e validar os argumentos
-
-	arguments=sys.argv
-	language= arguments[1]
-	if len(arguments)%2!=0:
-		raise ArgumentsError (invalidArgs)
-
-	i=2
-	p,n,e=1,1,1
-	while i<len(arguments):
-		if arguments[i]=="-p" and p:
-			port= int(arguments[i+1])
-			p=0
-		elif arguments[i]=="-n" and n:
-			TCS_name=arguments[i+1]
-			n=0
-		elif arguments[i]=="-e" and e:
-			TCS_port=arguments[i+1]
-			e=0
-		else:
-			raise InputError (invalidArgs)
-		i+=2
-
+	validateArgs(TCS)
+	
 	RegisterServer(language,port)
 
 	#while

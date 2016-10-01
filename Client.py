@@ -1,6 +1,7 @@
 #Client
 import socket
 import sys
+import os
 
 BUFFER_SIZE=1024
 ListMSG="ULQ"
@@ -22,11 +23,14 @@ def requestTRS(TRS, word):
 	message = "TRQ t "+str(len(word.split()))+" "+ word
 	return sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
 
-def requestFile(TRS,filename,size):
+def requestFile(TRS,filename):
 	file=open(filename,"rb")
+	size=os.path.getsize('./pepe.png')
+
 	TRS['socket'].connect((TRS['ip'],TRS['port']))
 	message= "TRQ f " + filename + " " + str(size) + " "
 	TRS['socket'].send(message.encode())
+
 	print("Sending")
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
@@ -75,6 +79,8 @@ def validateArgs(TCS):
 		traceback.print_exc()
 		print ("port must be an integer between 0-65535")
 		sys.exit(-1)
+	except:
+		raise ArgumentsError(invalidArgs)
 
 
 
@@ -104,7 +110,7 @@ def main():
 				response=requestTRS(TRS, " ".join(command[3:]))
 				print (response)
 			elif command[2]=="f":
-				requestFile(TRS,command[3],int(command[4]))
+				requestFile(TRS,command[3])
 				
 		elif command[0]=="exit":
 			return
