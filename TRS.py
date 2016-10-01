@@ -12,21 +12,27 @@ class ArgumentsError(Exception):
 		self.message=message
 
 
+def sendMsg(sock, ipAddress, port, message):
+	sock.sendto(message.encode(), (ipAddress, port))
+	response=sock.recv(BUFFER_SIZE)
+	return (response.decode())
 
-def RegisterServer(language,port):
+
+def RegisterServer(TCS, language,port):
 	#passerelle?
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
+	#UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
 
 	RegMsg="SRG "+ language+ " "+ socket.gethostname()+" "+ str(port)
-	UDP_socket.sendto(RegMsg.encode(), (TCS_ip, TCS_port))
+	UDP_socket.sendto(RegMsg.encode(), (socket.gethostbyname(socket.gethostname()), TCS['port']))
 
+	command,(Host_Address,Host_Port)= UDP_socket.recvfrom(BUFFER_SIZE)
+	command= command.decode().split()
 
-	data= UDP_socket.recvfrom(BUFFER_SIZE)
 	UDP_socket.close()
-	command= data[0].decode().split()
-	Host_Address= data[1][0]
-	Host_Port=data[1][1]
+
+	
+
 	if command[0]=="SRR":
 		if command[1]=="OK":
 			print ("Successfully registered Translation Server.")
@@ -80,7 +86,7 @@ def translate(language,port):
 
 def validateArgs(TCS):
 	arguments=sys.argv
-	
+	port=59000
 	if len(arguments)%2!=0:
 		raise ArgumentsError (invalidArgs)
 
@@ -89,7 +95,7 @@ def validateArgs(TCS):
 	try:
 		while i<len(arguments):
 			if arguments[i]=="-p" and p:
-				TCS['port']= int(arguments[i+1])
+				port= int(arguments[i+1])
 				p=0
 			elif arguments[i]=="-n" and n:
 				TCS['name']=arguments[i+1]
@@ -100,6 +106,7 @@ def validateArgs(TCS):
 			else:
 				raise InputError (invalidArgs)
 			i+=2
+		return port
 	except ValueError as e:
 		traceback.print_exc()
 		print ("port must be an integer between 0-65535")
@@ -122,13 +129,13 @@ def getTranslation(language, word):
 
 
 def main():
-	port=59000
-	TCS={'name':'localhost','port':58056, socket.gethostbyname(TCS['name'])}
+	language=sys.argv[1]
+	TCS={'name':'localhost','port':58056}
+	TCS['ip']=socket.gethostbyname(TCS['name'])
 
-	#meter TCS em dicionario e validar os argumentos
-	validateArgs(TCS)
-	
-	RegisterServer(language,port)
+	port=validateArgs(TCS)
+	print (TCS, port)
+	RegisterServer(TCS, language,port)
 
 	#while
 

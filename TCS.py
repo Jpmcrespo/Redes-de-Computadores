@@ -42,7 +42,7 @@ def validateArgs():
 		if len(arguments)>1:
 			if arguments[1]=="-p":
 				port=int(arguments[2])  
-				return
+				return port
 			raise ArgumentsError(invalidArgs)
 	except ValueError as e:
 		traceback.print_exc()
@@ -50,7 +50,7 @@ def validateArgs():
 		sys.exit(-1)
 	except:
 		raise ArgumentsError(invalidArgs)
-	return port
+	
 
 
 
