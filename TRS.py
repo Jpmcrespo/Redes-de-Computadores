@@ -38,17 +38,21 @@ def RegisterServer(TCS, language,port):
 
 
 def getTranslation(file, word):
+	file.seek(0)
 	for line in file:
 		trans=line.split()
 		if word==trans[0]:
+			print (word, trans[1])
 			return trans[1]
+
 	#o que acontece quando falha scrubs??
 
 
 def translateWordList(Client, language, wordlist):
 	result=""
 	langFile= open(language, 'r')
-	for word in wordlist:
+	print (wordlist)
+	for word in wordlist:	
 		result+=getTranslation(langFile, word)+" "
 	result=result.strip()
 	message="TRR t "+str(len(wordlist))+" "+result
@@ -69,6 +73,39 @@ def receiveFile(Client, size, extradata):
 
 
 
+
+def translate(Client, language,port):
+	#FaltaPasserelle
+	
+	received= Client['socket'].recv(BUFFER_SIZE)
+	
+	#passerelle - funcao nova para os \n's e splits e espaço-espaço
+
+	print (received.decode()[4])
+
+	if received[:3].decode()=="TRQ":			#outros casos, try except
+		if received.decode()[4]=="t":
+			received=received.split()
+			for i in range(len(received)):
+				received[i]=received[i].decode()
+			translateWordList(Client, language, received[3:])
+
+			
+
+		elif received.decode()[4]=="f":
+			received=received.split(b' ',4)
+			for i in range(4):
+				received[i]=received[i].decode()
+			extradata=received[-1]
+			receiveFile(Client, int(received[3]), extradata)
+			sendBack(Client, language, received[2])
+			
+
+
+
+
+
+
 def sendBack(Client, language, filename):
 	langFile= open(language+"Img", 'r')
 	filename=getTranslation(langFile, filename)
@@ -84,36 +121,6 @@ def sendBack(Client, language, filename):
 	print("done")
 
 
-
-
-def translate(language,port):
-	#FaltaPasserelle
-	Client={}
-	TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))
-	TCP_socket.listen(1)
-	Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
-
-	received= Client['socket'].recv(BUFFER_SIZE)
-	received=received.split(b' ',4)
-
-	for i in range(4):
-		received[i]=received[i].decode()
-
-	if received[0]=="TRQ":			#outros casos, try except
-		if received[1]=="t":
-
-			translateWordList(Client, language, received[3].split())
-
-			
-
-		elif received[1]=="f":
-
-			extradata=received[-1]
-			receiveFile(Client, int(received[3]), extradata)
-			sendBack(Client, language, received[2])
-
-			
 
 
 
@@ -162,11 +169,18 @@ def main():
 	TCS['ip']=socket.gethostbyname(TCS['name'])
 
 	port=validateArgs(TCS)
-	RegisterServer(TCS, language,port)
+	
 
+	TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))
+	TCP_socket.listen(1)
+	Client={}
+	RegisterServer(TCS, language,port)
 	#falta fazer a coisa quando se faz CTRL-C
 	while(1):
-		translate(language,port)
+		
+		Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
+		translate(Client, language,port)
 
 
 

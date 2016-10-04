@@ -74,8 +74,9 @@ def main():
 			sendList(UDP_socket, Host_Address, Host_Port, LanguageList)
 			
 		elif command[0]=="UNQ":
-
-			Msg="UNR "+ command[1] + " " + LanguageList[command[1]][0] + " " + LanguageList[command[1]][1]
+			Lang, name, port= command[1], LanguageList[command[1]][0], LanguageList[command[1]][1]
+			
+			Msg="UNR "+ Lang + " " + name + " " + port
 			UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 
 		elif command[0]=="SRG":

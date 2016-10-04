@@ -4,7 +4,7 @@ import sys
 import os
 
 BUFFER_SIZE=1024
-ListMSG="ULQ"
+ListMSG="ULQ\n"
 invalidArgs='\nInvalid arguments.\nusage: python3 Client.py [-n TCSname] [-p TCSport]'
 
 class ArgumentsError(Exception):
@@ -20,7 +20,7 @@ def sendMsg(sock, ipAddress, port, message):
 
 def requestTRS(TRS, word):
 	TRS['socket'].connect((TRS['ip'],TRS['port']))
-	message = "TRQ t "+str(len(word.split()))+" "+ word
+	message = "TRQ t "+str(len(word.split()))+" "+ word+ "\n"
 	return sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
 
 
@@ -31,13 +31,15 @@ def requestFile(TRS,filename):
 	TRS['socket'].connect((TRS['ip'],TRS['port']))
 	message= "TRQ f " + filename + " " + str(size) + " "
 
-	TRS['socket'].send(message.encode())
+	TRS['socket'].sendto(message.encode(), (TRS['ip'], TRS['port']))
 	print(str(size)+" bytes to Transmit")
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
 		TRS['socket'].send(buff)
 		size-=BUFFER_SIZE
 	print("done")
+
+
 
 def receiveFile(TRS, name, size, extradata):
 	file=open(name.rsplit(".",1)[0]+"RECEIVED"+"."+name.rsplit(".",1)[1],"wb")
@@ -51,8 +53,11 @@ def receiveFile(TRS, name, size, extradata):
 	print("done")
 	print("END OF FILE TRANSLATION")
 
+
+
 def receiveTransFile(TRS):
 	received= TRS['socket'].recv(BUFFER_SIZE)
+	print (received)
 	received=received.split(b' ',4)
 	for i in range(4):
 		received[i]=received[i].decode()
@@ -60,17 +65,7 @@ def receiveTransFile(TRS):
 	if received[0]=="TRR":			#outros casos, try except
 		if received[1]=="f":
 			extradata=received[-1]
-			receiveFile(TRS, received[2], int(received[3]), extradata)
-
-
-
-
-
-
-
-
-
-	
+			receiveFile(TRS, received[2], int(received[3]), extradata)	
 
 		
 
@@ -92,9 +87,11 @@ def updateLanguageList(TCS):
 
 
 def requestTRSCred(TCS, language):
-	Msg="UNQ "+language
+	Msg="UNQ "+language+ "\n"
 	cred=sendMsg(TCS['socket'], socket.gethostbyname(TCS['name']), TCS['port'], Msg).split()
-	return {'ip': cred[2], 'port' : int(cred[3])}
+	print (cred)
+	#return {'ip': cred[2], 'port' : int(cred[3])}
+	return {'ip': cred[1], 'port' : int(cred[2])}
 
 
 def validateArgs(TCS):
@@ -143,6 +140,7 @@ def main():
 			if command[2]=="t":
 				response=requestTRS(TRS, " ".join(command[3:]))
 				print (response)
+
 			elif command[2]=="f":
 				requestFile(TRS,command[3])
 				receiveTransFile(TRS)
