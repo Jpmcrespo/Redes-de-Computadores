@@ -30,9 +30,12 @@ def RegisterServer(language, name, port, LanguageList ):
 		LanguageList[language]=[name,port]
 	return Msg
 	
-
+#---------------------------------------------------------------------------------
+#							Argument Validation
+#---------------------------------------------------------------------------------
 
 def validateArgs():
+		'''validates the arguments given to the program upon runtime'''
 	arguments=sys.argv
 	port=58056
 	if len(arguments)>3:
@@ -52,8 +55,9 @@ def validateArgs():
 		raise ArgumentsError(invalidArgs)
 	
 
-
-
+#---------------------------------------------------------------------------------
+#										Main
+#---------------------------------------------------------------------------------
 
 def main():
 	port=validateArgs()
@@ -75,14 +79,16 @@ def main():
 			
 		elif command[0]=="UNQ":
 			Lang, name, port= command[1], LanguageList[command[1]][0], LanguageList[command[1]][1]
-			
+
 			Msg="UNR "+ Lang + " " + name + " " + port
 			UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 
 		elif command[0]=="SRG":
 
 			try:
-				Msg=RegisterServer(command[1], command[2], command[3], LanguageList)
+				Lang, name, port=command[1], command[2], command[3]
+
+				Msg=RegisterServer(Lang, name, port, LanguageList)
 			except Exception:
 				Msg="SRR ERR"
 			finally:

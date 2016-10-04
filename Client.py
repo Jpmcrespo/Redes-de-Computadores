@@ -13,18 +13,40 @@ class ArgumentsError(Exception):
 
 
 def sendMsg(sock, ipAddress, port, message):
+	'''sends a message and waits for the answer'''
+
 	sock.sendto(message.encode(), (ipAddress, port))
 	response=sock.recv(BUFFER_SIZE)
 	return (response.decode())
 
 
-def requestTRS(TRS, word):
+#---------------------------------------------------------------------------------
+#							Word Translation
+#---------------------------------------------------------------------------------
+
+def requestWordTanslation(TRS, word):
+	'''requests and prints a translated word'''
+
 	TRS['socket'].connect((TRS['ip'],TRS['port']))
 	message = "TRQ t "+str(len(word.split()))+" "+ word+ "\n"
-	return sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
+	response=sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
+	print (response)
 
+#---------------------------------------------------------------------------------
+#							File Translation
+#---------------------------------------------------------------------------------
 
-def requestFile(TRS,filename):
+def requestFileTranslation(TRS, filename):
+	'''requests a file translation'''
+
+	sendForeignFile(TRS, filename)
+	rcvTransFile(TRS)
+
+#----------------------------Send Foreign File------------------------------------
+
+def sendForeignFile(TRS,filename):
+	'''sends the foreign file to TRS'''
+
 	file=open(filename,"rb")
 	size=os.path.getsize(filename)
 
@@ -40,8 +62,27 @@ def requestFile(TRS,filename):
 	print("done")
 
 
+#----------------------------Receive translated file-------------------------------
+
+def rcvTransFile(TRS):
+	'''receives the translated file from TRS'''
+
+	received= TRS['socket'].recv(BUFFER_SIZE)
+	received=received.split(b' ',4)
+	for i in range(4):
+		received[i]=received[i].decode()
+
+	if received[0]=="TRR":			#outros casos, try except
+		if received[1]=="f":
+			extradata=received[-1]
+			receiveFile(TRS, received[2], int(received[3]), extradata)	
+
+		
+
 
 def receiveFile(TRS, name, size, extradata):
+	'''auxiliary function to rcvTransFile'''
+
 	file=open(name.rsplit(".",1)[0]+"RECEIVED"+"."+name.rsplit(".",1)[1],"wb")
 
 	print("receiving " +str(size)+" bytes")
@@ -55,23 +96,13 @@ def receiveFile(TRS, name, size, extradata):
 
 
 
-def receiveTransFile(TRS):
-	received= TRS['socket'].recv(BUFFER_SIZE)
-	print (received)
-	received=received.split(b' ',4)
-	for i in range(4):
-		received[i]=received[i].decode()
-
-	if received[0]=="TRR":			#outros casos, try except
-		if received[1]=="f":
-			extradata=received[-1]
-			receiveFile(TRS, received[2], int(received[3]), extradata)	
-
-		
-
-
+#---------------------------------------------------------------------------------
+#						Language List Request aka "list" command
+#---------------------------------------------------------------------------------
 
 def updateLanguageList(TCS):
+	'''prints and updates the list of available languages to translate'''
+
 	lst=sendMsg(TCS['socket'], socket.gethostbyname(TCS['name']), TCS['port'], ListMSG).split()
 	languages=[]
 	i=1
@@ -86,15 +117,13 @@ def updateLanguageList(TCS):
 	return languages
 
 
-def requestTRSCred(TCS, language):
-	Msg="UNQ "+language+ "\n"
-	cred=sendMsg(TCS['socket'], socket.gethostbyname(TCS['name']), TCS['port'], Msg).split()
-	print (cred)
-	#return {'ip': cred[2], 'port' : int(cred[3])}
-	return {'ip': cred[1], 'port' : int(cred[2])}
-
+#---------------------------------------------------------------------------------
+#							Argument Validation
+#---------------------------------------------------------------------------------
 
 def validateArgs(TCS):
+	'''validates the arguments given to the program upon runtime'''
+
 	n,p=1,1
 	arguments=sys.argv
 	try:
@@ -116,7 +145,24 @@ def validateArgs(TCS):
 
 
 
+#---------------------------------------------------------------------------------
+#   						Translation Server Credentials
+#---------------------------------------------------------------------------------
 
+def requestTRSCred(TCS, language):
+	'''requests the TRS credentials of a specific language, returns a dictionary'''
+
+	Msg="UNQ "+language+ "\n"
+	cred=sendMsg(TCS['socket'], socket.gethostbyname(TCS['name']), TCS['port'], Msg).split()
+	#return {'ip': cred[2], 'port' : int(cred[3])}
+	return {'ip': cred[1], 'port' : int(cred[2])}
+
+
+
+
+#---------------------------------------------------------------------------------
+#										Main
+#---------------------------------------------------------------------------------
 
 def main():
 	words=""
@@ -125,7 +171,6 @@ def main():
 	validateArgs(TCS)
 
 	languages=[]
-	#print (TCS['name'], TCS['port'])
 
 	while(True):
 		command= input(">").split()
@@ -138,12 +183,11 @@ def main():
 			TRS['socket']=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
 			if command[2]=="t":
-				response=requestTRS(TRS, " ".join(command[3:]))
-				print (response)
-
+				requestWordTanslation(TRS, " ".join(command[3:]))
+				
 			elif command[2]=="f":
-				requestFile(TRS,command[3])
-				receiveTransFile(TRS)
+				requestFileTranslation(TRS, command[3])
+
 
 				
 		elif command[0]=="exit":
