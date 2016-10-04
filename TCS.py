@@ -30,6 +30,17 @@ def RegisterServer(language, name, port, LanguageList ):
 		LanguageList[language]=[name,port]
 	return Msg
 	
+def UnRegisterServer(language, name, port, LanguageList ):
+	Msg="SUR "
+	if language in LanguageList:
+		Msg+="OK"
+		print("-"+language+" "+name+" "+port)
+		del LanguageList[language]
+	else:
+		Msg+="NOK"
+		
+	return Msg
+	
 #---------------------------------------------------------------------------------
 #							Argument Validation
 #---------------------------------------------------------------------------------
@@ -96,6 +107,15 @@ def main():
 			finally:
 				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 
+		elif command[0]=="SUN":
+			try:
+				Lang, name, port=command[1], command[2], command[3]
+
+				Msg=UnRegisterServer(Lang, name, port, LanguageList)
+			except Exception:
+				Msg="SUR ERR"
+			finally:
+				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 
 
 

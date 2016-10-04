@@ -1,6 +1,7 @@
 #Translation Server
 import socket
 import sys
+import signal
 import os
 
 BUFFER_SIZE=1024	
@@ -36,6 +37,23 @@ def RegisterServer(TCS, language,port):
 			print ("Registration Error.")
 			sys.exit()
 
+
+def UnRegisterServer(TCS, language,port):
+	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	#no need to bind anything because the system allready binds sockets that send stuff
+	#you only need to bind sockets that receive before sending, which is not the case
+	RegMsg="SUN "+ language+ " "+ socket.gethostname()+" "+ str(port)
+	command=sendMsg(UDP_socket, TCS['ip'], TCS['port'], RegMsg).split()
+	UDP_socket.close()
+
+	if command[0]=="SUR":
+		if command[1]=="OK":
+			print ("Successfully unregistered Translation Server.")
+		elif command[1]=="NOK":
+			print ("Unregistration refused.")
+		elif command[1]=="ERR":
+			print ("Unregistration Error.")
+			sys.exit()
 
 def getTranslation(file, word):
 	file.seek(0)
@@ -161,9 +179,8 @@ def validateArgs(TCS):
 
 
 
-
-
 def main():
+
 	language=sys.argv[1]
 	TCS={'name':socket.gethostname(),'port':58056}
 	TCS['ip']=socket.gethostbyname(TCS['name'])
@@ -178,10 +195,12 @@ def main():
 	RegisterServer(TCS, language,port)
 	#falta fazer a coisa quando se faz CTRL-C
 	while(1):
-		
-		Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
-		translate(Client, language,port)
-
+		try:
+			Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
+			translate(Client, language,port)
+		except KeyboardInterrupt:
+			UnRegisterServer(TCS,language,port)
+			sys.exit()
 
 
 
