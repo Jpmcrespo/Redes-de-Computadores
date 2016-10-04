@@ -113,7 +113,7 @@ def sendBack(Client, language, filename):
 	size=os.path.getsize(filename)
 	message= "TRR f " + filename + " " + str(size) + " "
 	Client['socket'].send(message.encode())
-	print("Sending back "+str(dize)+" bytes")
+	print("Sending back "+str(size)+" bytes")
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
 		Client['socket'].send(buff)

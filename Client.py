@@ -32,11 +32,11 @@ def requestFile(TRS,filename):
 	message= "TRQ f " + filename + " " + str(size) + " "
 
 	TRS['socket'].sendto(message.encode(), (TRS['ip'], TRS['port']))
-	print(str(size)+" bytes to Transmit")
+	print(str(size)+" bytes to Transmit")	
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
 		TRS['socket'].send(buff)
-		size-=BUFFER_SIZE
+		size-=len(buff)
 	print("done")
 
 
