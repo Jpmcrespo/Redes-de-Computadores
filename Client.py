@@ -90,7 +90,7 @@ def receiveFile(TRS, name, size, extradata):
 	while(size>0):
 		buff=TRS['socket'].recv(BUFFER_SIZE)
 		file.write(buff)
-		size-=BUFFER_SIZE
+		size-=len(buff)
 	print("done")
 	print("END OF FILE TRANSLATION")
 

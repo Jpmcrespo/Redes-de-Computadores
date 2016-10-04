@@ -35,7 +35,7 @@ def RegisterServer(language, name, port, LanguageList ):
 #---------------------------------------------------------------------------------
 
 def validateArgs():
-		'''validates the arguments given to the program upon runtime'''
+
 	arguments=sys.argv
 	port=58056
 	if len(arguments)>3:
