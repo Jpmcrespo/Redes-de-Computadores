@@ -2,6 +2,7 @@
 import socket
 import sys
 import os
+import traceback
 
 BUFFER_SIZE=1024
 ListMSG="ULQ\n"
@@ -38,7 +39,8 @@ def requestWordTanslation(TRS, word):
 
 def requestFileTranslation(TRS, filename):
 	'''requests a file translation'''
-
+	
+	
 	sendForeignFile(TRS, filename)
 	rcvTransFile(TRS)
 
@@ -133,6 +135,8 @@ def validateArgs(TCS):
 				n=0
 			elif arguments[i]=='-p' and p:
 				TCS['port']= int(arguments[i+1])    #Falta ver se é valido o numero
+				if TCS['port'] not in range(65536):
+					raise ValueError
 				p=0
 			else:
 				raise ArgumentsError(invalidArgs)
@@ -154,6 +158,8 @@ def requestTRSCred(TCS, language):
 
 	Msg="UNQ "+language+ "\n"
 	cred=sendMsg(TCS['socket'], socket.gethostbyname(TCS['name']), TCS['port'], Msg).split()
+	if cred[1]=="EOF" or cred[1]=="ERR":
+		print (cred[0]+ " "+ cred[1])
 	#return {'ip': cred[2], 'port' : int(cred[3])}
 	return {'ip': cred[1], 'port' : int(cred[2])}
 
@@ -174,26 +180,33 @@ def main():
 
 	while(True):
 		command= input(">").split()
-		if command[0]=="list":
-			languages=updateLanguageList(TCS)
+		try:
+			if command[0]=="list":
+				TCS['socket'].settimeout(2)
+				languages=updateLanguageList(TCS)
 
-		elif command[0]=="request":
+			elif command[0]=="request":
 
-			TRS=requestTRSCred(TCS, languages[int(command[1])-1])
-			TRS['socket']=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+				TRS=requestTRSCred(TCS, languages[int(command[1])-1])
+				TRS['socket']=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+				TRS['socket'].settimeout(5)
+	
+				if command[2]=="t":
+					requestWordTanslation(TRS, " ".join(command[3:]))
+					
+				elif command[2]=="f":
+					requestFileTranslation(TRS, command[3])
 
-			if command[2]=="t":
-				requestWordTanslation(TRS, " ".join(command[3:]))
-				
-			elif command[2]=="f":
-				requestFileTranslation(TRS, command[3])
 
+					
+			elif command[0]=="exit":
+				return
+			else:
+				print ("command not found")
 
-				
-		elif command[0]=="exit":
-			return
-		else:
-			print ("command not found")
+		except socket.timeout:
+			print ('request timed out, please try again')
+
 
 
 

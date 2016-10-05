@@ -20,11 +20,18 @@ def sendMsg(sock, ipAddress, port, message):
 	return (response.decode())
 
 
+
+def protocolSyntaxVerification(msg):
+	if "  " in msg or msg[-1]!="\n" or msg[0]==" " or " \n" in msg:
+		return False
+	return True
+
+
 def RegisterServer(TCS, language,port):
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	#no need to bind anything because the system allready binds sockets that send stuff
 	#you only need to bind sockets that receive before sending, which is not the case
-	RegMsg="SRG "+ language+ " "+ socket.gethostname()+" "+ str(port)
+	RegMsg="SRG "+ language+ " "+ socket.gethostname()+" "+ str(port)+"\n"
 	command=sendMsg(UDP_socket, TCS['ip'], TCS['port'], RegMsg).split()
 	UDP_socket.close()
 
@@ -42,7 +49,7 @@ def UnRegisterServer(TCS, language,port):
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	#no need to bind anything because the system allready binds sockets that send stuff
 	#you only need to bind sockets that receive before sending, which is not the case
-	RegMsg="SUN "+ language+ " "+ socket.gethostname()+" "+ str(port)
+	RegMsg="SUN "+ language+ " "+ socket.gethostname()+" "+ str(port)+"\n"
 	command=sendMsg(UDP_socket, TCS['ip'], TCS['port'], RegMsg).split()
 	UDP_socket.close()
 
@@ -62,6 +69,7 @@ def getTranslation(file, word):
 		if word==trans[0]:
 			print (word, trans[1])
 			return trans[1]
+	return "NTA"
 
 	#o que acontece quando falha scrubs??
 
@@ -73,7 +81,10 @@ def translateWordList(Client, language, wordlist):
 	for word in wordlist:	
 		result+=getTranslation(langFile, word)+" "
 	result=result.strip()
-	message="TRR t "+str(len(wordlist))+" "+result
+	if "NTA" in result:
+		message="TRR NTA\n"
+	else:
+		message="TRR t "+str(len(wordlist))+" "+result+"\n"
 	Client['socket'].send(message.encode())
 
 
@@ -89,39 +100,41 @@ def receiveFile(Client, size, extradata):
 	print("done")
 
 
-
-
-
 def translate(Client, language,port):
 	#FaltaPasserelle
 	
 	received= Client['socket'].recv(BUFFER_SIZE)
+	print (received)
 	
-	#passerelle - funcao nova para os \n's e splits e espaço-espaço
 
-	print (received.decode()[4])
-
-	if received[:3].decode()=="TRQ":			#outros casos, try except
+	if received[:3].decode()=="TRQ":			#variavel auxiliar ao received?
 		if received.decode()[4]=="t":
+			#if not protocolSyntaxVerification(received.decode()):
+			#	Msg="Invalid Request\n"
+			#	Client['socket'].sendto(Msg.encode(), (ipAddress, port))
+			#		return
 			received=received.split()
+			if int(received[2])!=len(received)-3:
+				Client['socket'].send('TRR ERR\n'.encode())
+				return
 			for i in range(len(received)):
 				received[i]=received[i].decode()
 			translateWordList(Client, language, received[3:])
 
-			
 
-		elif received.decode()[4]=="f":
-			received=received.split(b' ',4)
+		elif received[:5].decode()[4]=="f":
+			received=received.split(b' ',4)   	#nao verificamos se segue o protocolo tipo espaço espaço e \n	
+			if len(received)!=5:
+				Client['socket'].send('TRR ERR\n'.encode())
+				return
 			for i in range(4):
 				received[i]=received[i].decode()
 			extradata=received[-1]
 			receiveFile(Client, int(received[3]), extradata)
 			sendBack(Client, language, received[2])
-			
-
-
-
-
+	
+	else:
+		Client['socket'].send('Invalid Request\n'.encode())
 
 
 def sendBack(Client, language, filename):
@@ -135,15 +148,18 @@ def sendBack(Client, language, filename):
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
 		Client['socket'].send(buff)
-		size-=BUFFER_SIZE
+		size-=len(buff)
 	print("done")
 
 
 
-
-
+#---------------------------------------------------------------------------------
+#							Argument Validation
+#---------------------------------------------------------------------------------
 
 def validateArgs(TCS):
+	'''validates the arguments given to the program upon runtime'''
+
 	arguments=sys.argv
 	port=59000
 	if len(arguments)%2!=0:
@@ -155,12 +171,16 @@ def validateArgs(TCS):
 		while i<len(arguments):
 			if arguments[i]=="-p" and p:
 				port= int(arguments[i+1])
+				if port not in range(65536):
+					raise ValueError
 				p=0
 			elif arguments[i]=="-n" and n:
 				TCS['name']=arguments[i+1]
 				n=0
 			elif arguments[i]=="-e" and e:
-				TCS['port']=arguments[i+1]
+				TCS['port']=int(arguments[i+1])
+				if TCS['port'] not in range(65536):
+					raise ValueError
 				e=0
 			else:
 				raise InputError (invalidArgs)
@@ -172,11 +192,6 @@ def validateArgs(TCS):
 		sys.exit(-1)
 	except:
 		raise ArgumentsError(invalidArgs)
-
-
-
-
-
 
 
 def main():
@@ -201,15 +216,6 @@ def main():
 		except KeyboardInterrupt:
 			UnRegisterServer(TCS,language,port)
 			sys.exit()
-
-
-
-
-
-
-
-
-
 
 
 main()
