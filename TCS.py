@@ -69,13 +69,15 @@ def validateArgs():
 		raise ArgumentsError(invalidArgs)
 
 	try:
-		if len(arguments)>1:
+		if len(arguments)>2:
 			if arguments[1]=="-p":
 				port=int(arguments[2])  
 				if port not in range(65536):
 					raise ValueError
 				return port
 			raise ArgumentsError(invalidArgs)
+		else:
+			return port
 	except ValueError as e:
 		traceback.print_exc()
 		print (portMsg)
@@ -98,7 +100,7 @@ def sendTRScred(sock, language, LanguageList, Host_Address,Host_Port):
 	if language not in LanguageList:
 		Msg= "UNR EOF\n"
 	else:
-		name, port= LanguageList[language][0], LanguageList[language]	[1]
+		name, port= LanguageList[language][0], LanguageList[language][1]
 		Msg="UNR "+ name + " " + port+"\n"
 	sock.sendto(Msg.encode(), (Host_Address, Host_Port))
 
@@ -109,7 +111,6 @@ def sendTRScred(sock, language, LanguageList, Host_Address,Host_Port):
 
 def main():
 	port=validateArgs()
-		
 
 	LanguageList={}
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
