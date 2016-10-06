@@ -96,6 +96,9 @@ def receiveFile(TRS, name, size, extradata):
 		file.write(buff)
 		size-=len(buff)
 	print("done")
+	file.seek(-1, os.SEEK_END)
+	file.truncate()
+	file.close()
 	print("END OF FILE TRANSLATION")
 
 

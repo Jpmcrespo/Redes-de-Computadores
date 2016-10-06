@@ -99,8 +99,8 @@ def receiveFile(Client, size, extradata):
 		file.write(buff)
 		size-=len(buff)
 	print("done")
-	#file.seek(-2, os.SEEK_END)
-	#file.truncate()
+	file.seek(-1, os.SEEK_END)
+	file.truncate()
 	file.close()
 
 
