@@ -2,7 +2,7 @@
 import socket
 import sys
 import traceback
-BUFFER_SIZE=1024	
+BUFFER_SIZE=1024
 invalidArgs='\nInvalid arguments.\nusage: python3 TCS.py [-p TCSport]'
 portMsg="port must be an integer between 0-65535"
 
@@ -17,14 +17,14 @@ class ArgumentsError(Exception):
 
 def sendList(sock, ipAddress, port, lst):
 	'''sends the list of available languages to the Client'''
-
 	print ("List request: "+socket.gethostbyaddr(ipAddress)[0]+ " "+ str(port))
+	print(" ".join(lst.keys()))
 	if len(lst)==0:
 		Msg='ULR EOF\n'
 	else:
 		Msg= "ULR "+str(len(lst))+ " "
 		Msg+=" ".join(lst)+ "\n"
-		
+
 
 	sock.sendto(Msg.encode(), (ipAddress, port))
 
@@ -43,7 +43,7 @@ def RegisterServer(language, name, port, LanguageList ):
 		print("+"+language+" "+name+" "+port)
 		LanguageList[language]=[name,port]
 	return Msg
-	
+
 def UnRegisterServer(language, name, port, LanguageList ):
 	'''unregisters a TRS in LanguageList to let TCS know that the specified language is not available for translation anymore'''
 
@@ -54,9 +54,9 @@ def UnRegisterServer(language, name, port, LanguageList ):
 		del LanguageList[language]
 	else:
 		Msg+="NOK\n"
-		
+
 	return Msg
-	
+
 #---------------------------------------------------------------------------------
 #							Argument Validation
 #---------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ def validateArgs():
 	try:
 		if len(arguments)>2:
 			if arguments[1]=="-p":
-				port=int(arguments[2])  
+				port=int(arguments[2])
 				if port not in range(65536):
 					raise ValueError
 				return port
@@ -85,7 +85,7 @@ def validateArgs():
 		sys.exit(-1)
 	except:
 		raise ArgumentsError(invalidArgs)
-	
+
 #---------------------------------------------------------------------------------
 #							Protocol Syntax Verification
 #---------------------------------------------------------------------------------
@@ -126,7 +126,6 @@ def main():
 			UDP_socket.sendto(Msg.encode(), (Host_Address,Host_Port))
 			continue
 		command=command.split()
-		print (command)
 		if command[0]=="ULQ":
 
 			if len(command)==1:

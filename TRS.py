@@ -4,7 +4,7 @@ import sys
 import signal
 import os
 
-BUFFER_SIZE=1024	
+BUFFER_SIZE=1024
 
 invalidArgs='\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]'
 portMsg="port must be an integer between 0-65535"
@@ -67,7 +67,7 @@ def getTranslation(file, word):
 	for line in file:
 		trans=line.split()
 		if word==trans[0]:
-			print (word, trans[1])
+
 			return trans[1]
 	return "NTA"
 
@@ -77,10 +77,10 @@ def getTranslation(file, word):
 def translateWordList(Client, language, wordlist):
 	result=""
 	langFile= open(language, 'r')
-	print (wordlist)
-	for word in wordlist:	
+	for word in wordlist:
 		result+=getTranslation(langFile, word)+" "
 	result=result.strip()
+	print(result+" ("+str(len(result.split()))+")")
 	if "NTA" in result:
 		message="TRR NTA\n"
 	else:
@@ -106,9 +106,9 @@ def receiveFile(Client, size, extradata):
 
 def translate(Client, language,port):
 	#FaltaPasserelle
-	
-	received= Client['socket'].recv(BUFFER_SIZE)
 
+	received= Client['socket'].recv(BUFFER_SIZE)
+	print(socket.gethostbyaddr(Client["ip"])[0]+" "+str(Client["port"])+": "+" ".join((received[3:].decode()).split()))
 	if received[:3].decode()=="TRQ":			#variavel auxiliar ao received?
 		if received.split()[1].decode()=="t":
 			#if not protocolSyntaxVerification(received.decode()):
@@ -125,7 +125,7 @@ def translate(Client, language,port):
 
 
 		elif received.split()[1].decode()=="f":
-			received=received.split(b' ',4)   	#nao verificamos se segue o protocolo tipo espaço espaço e \n	
+			received=received.split(b' ',4)   	#nao verificamos se segue o protocolo tipo espaço espaço e \n
 			if len(received)!=5:
 				Client['socket'].send('TRR ERR\n'.encode())
 				return
@@ -134,7 +134,7 @@ def translate(Client, language,port):
 			extradata=received[-1]
 			receiveFile(Client, int(received[3]), extradata)
 			sendBack(Client, language, received[2])
-	
+
 	else:
 		Client['socket'].send('Invalid Request\n'.encode())
 
@@ -204,7 +204,7 @@ def main():
 	TCS['ip']=socket.gethostbyname(TCS['name'])
 
 	port=validateArgs(TCS)
-	
+
 
 	TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))

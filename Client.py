@@ -31,7 +31,10 @@ def requestWordTanslation(TRS, word):
 	TRS['socket'].connect((TRS['ip'],TRS['port']))
 	message = "TRQ t "+str(len(word.split()))+" "+ word+ "\n"
 	response=sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
-	print (response)
+	if response=="TRR NTA\n":
+		print(TRS['ip']+": WARNING: One or more of the words you requested have no valid translation.")
+	else:
+		print (TRS['ip']+": "+" ".join(response.split()[3:]))
 
 #---------------------------------------------------------------------------------
 #							File Translation
@@ -39,8 +42,8 @@ def requestWordTanslation(TRS, word):
 
 def requestFileTranslation(TRS, filename):
 	'''requests a file translation'''
-	
-	
+
+
 	sendForeignFile(TRS, filename)
 	rcvTransFile(TRS)
 
@@ -56,7 +59,7 @@ def sendForeignFile(TRS,filename):
 	message= "TRQ f " + filename + " " + str(size) + " "
 
 	TRS['socket'].sendto(message.encode(), (TRS['ip'], TRS['port']))
-	print(str(size)+" bytes to Transmit")	
+	print(str(size)+" bytes to Transmit")
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
 		TRS['socket'].send(buff)
@@ -78,9 +81,9 @@ def rcvTransFile(TRS):
 	if received[0]=="TRR":			#outros casos, try except
 		if received[1]=="f":
 			extradata=received[-1]
-			receiveFile(TRS, received[2], int(received[3]), extradata)	
+			receiveFile(TRS, received[2], int(received[3]), extradata)
 
-		
+
 
 
 def receiveFile(TRS, name, size, extradata):
@@ -166,6 +169,7 @@ def requestTRSCred(TCS, language):
 	if cred[1]=="EOF" or cred[1]=="ERR":
 		print (cred[0]+ " "+ cred[1])
 	#return {'ip': cred[2], 'port' : int(cred[3])}
+	print(cred[1]+" "+cred[2])
 	return {'ip': cred[1], 'port' : int(cred[2])}
 
 
@@ -178,7 +182,7 @@ def requestTRSCred(TCS, language):
 def main():
 	words=""
 	TCS={'name':"localhost", "port": 58056, "socket":socket.socket(socket.AF_INET, socket.SOCK_DGRAM)}
-	
+
 	validateArgs(TCS)
 
 	languages=[]
@@ -195,15 +199,15 @@ def main():
 				TRS=requestTRSCred(TCS, languages[int(command[1])-1])
 				TRS['socket']=socket.socket(socket.AF_INET,socket.SOCK_STREAM) #Socket close
 				TRS['socket'].settimeout(5)
-	
+
 				if command[2]=="t":
 					requestWordTanslation(TRS, " ".join(command[3:]))
-					
+
 				elif command[2]=="f":
 					requestFileTranslation(TRS, command[3])
 
 
-					
+
 			elif command[0]=="exit":
 				return
 			else:
