@@ -90,6 +90,7 @@ def receiveFile(TRS, name, size, extradata):
 
 	print("receiving " +str(size)+" bytes")
 	file.write(extradata)
+	size-=len(extradata)
 	while(size>0):
 		buff=TRS['socket'].recv(BUFFER_SIZE)
 		file.write(buff)

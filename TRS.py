@@ -93,6 +93,7 @@ def receiveFile(Client, size, extradata):
 
 	print("receiving " +str(size)+" bytes")
 	file.write(extradata)
+	size-=len(extradata)
 	while(size>0):
 		buff=Client['socket'].recv(BUFFER_SIZE)
 		file.write(buff)
@@ -107,11 +108,9 @@ def translate(Client, language,port):
 	#FaltaPasserelle
 	
 	received= Client['socket'].recv(BUFFER_SIZE)
-	print (received)
-	
 
 	if received[:3].decode()=="TRQ":			#variavel auxiliar ao received?
-		if received.decode()[4]=="t":
+		if received.split()[1].decode()=="t":
 			#if not protocolSyntaxVerification(received.decode()):
 			#	Msg="Invalid Request\n"
 			#	Client['socket'].sendto(Msg.encode(), (ipAddress, port))
@@ -125,7 +124,7 @@ def translate(Client, language,port):
 			translateWordList(Client, language, received[3:])
 
 
-		elif received[:5].decode()[4]=="f":
+		elif received.split()[1].decode()=="f":
 			received=received.split(b' ',4)   	#nao verificamos se segue o protocolo tipo espaço espaço e \n	
 			if len(received)!=5:
 				Client['socket'].send('TRR ERR\n'.encode())
