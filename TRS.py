@@ -96,8 +96,11 @@ def receiveFile(Client, size, extradata):
 	while(size>0):
 		buff=Client['socket'].recv(BUFFER_SIZE)
 		file.write(buff)
-		size-=BUFFER_SIZE
+		size-=len(buff)
 	print("done")
+	#file.seek(-2, os.SEEK_END)
+	#file.truncate()
+	file.close()
 
 
 def translate(Client, language,port):
@@ -150,6 +153,7 @@ def sendBack(Client, language, filename):
 		Client['socket'].send(buff)
 		size-=len(buff)
 	print("done")
+	Client['socket'].send("\n".encode())
 
 
 
@@ -213,6 +217,7 @@ def main():
 		try:
 			Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
 			translate(Client, language,port)
+			Client['socket'].close()
 		except KeyboardInterrupt:
 			UnRegisterServer(TCS,language,port)
 			sys.exit()

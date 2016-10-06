@@ -62,6 +62,7 @@ def sendForeignFile(TRS,filename):
 		TRS['socket'].send(buff)
 		size-=len(buff)
 	print("done")
+	TRS['socket'].sendto("\n".encode(),  (TRS['ip'], TRS['port']))
 
 
 #----------------------------Receive translated file-------------------------------
@@ -185,10 +186,10 @@ def main():
 				TCS['socket'].settimeout(2)
 				languages=updateLanguageList(TCS)
 
-			elif command[0]=="request":
+			elif command[0]=="request":   #se fizer logo request crasha tudo
 
 				TRS=requestTRSCred(TCS, languages[int(command[1])-1])
-				TRS['socket']=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+				TRS['socket']=socket.socket(socket.AF_INET,socket.SOCK_STREAM) #Socket close
 				TRS['socket'].settimeout(5)
 	
 				if command[2]=="t":

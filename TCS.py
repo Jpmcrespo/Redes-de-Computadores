@@ -22,9 +22,10 @@ def sendList(sock, ipAddress, port, lst):
 	if len(lst)==0:
 		Msg='ULR EOF\n'
 	else:
-		Msg= "ULR "+str(len(lst))+"\n"
-		for entry in lst:
-			Msg+=" " + entry
+		Msg= "ULR "+str(len(lst))+ " "
+		Msg+=" ".join(lst)+ "\n"
+		
+
 	sock.sendto(Msg.encode(), (ipAddress, port))
 
 #---------------------------------------------------------------------------------
@@ -101,7 +102,7 @@ def sendTRScred(sock, language, LanguageList, Host_Address,Host_Port):
 		Msg= "UNR EOF\n"
 	else:
 		name, port= LanguageList[language][0], LanguageList[language][1]
-		Msg="UNR "+ name + " " + port+"\n"
+		Msg="UNR "+ socket.gethostbyname(name) + " " + port+"\n"
 	sock.sendto(Msg.encode(), (Host_Address, Host_Port))
 
 
