@@ -195,6 +195,12 @@ def validateArgs(TCS):
 		sys.exit(-1)
 	except:
 		raise ArgumentsError(invalidArgs)
+	try:
+		test=socket.gethostbyname(TCS['name'])
+	except:
+		traceback.print_exc()
+		print("Invalid server name")
+		sys.exit(-1)
 
 
 def main():

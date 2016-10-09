@@ -32,7 +32,7 @@ def requestWordTanslation(TRS, word):
 	message = "TRQ t "+str(len(word.split()))+" "+ word+ "\n"
 	response=sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
 	if response=="TRR NTA\n":
-		print(TRS['ip']+": WARNING: One or more of the words you requested have no valid translation.")
+		print(TRS['ip']+": ERROR: One or more of the words you requested have no valid translation.")
 	else:
 		print (TRS['ip']+": "+" ".join(response.split()[3:]))
 
@@ -141,8 +141,10 @@ def validateArgs(TCS):
 			if arguments[i]=="-n" and n:
 				TCS['name']= arguments[i+1]
 				n=0
+				
+				
 			elif arguments[i]=='-p' and p:
-				TCS['port']= int(arguments[i+1])    #Falta ver se é valido o numero
+				TCS['port']= int(arguments[i+1])  
 				if TCS['port'] not in range(65536):
 					raise ValueError
 				p=0
@@ -154,6 +156,12 @@ def validateArgs(TCS):
 		sys.exit(-1)
 	except:
 		raise ArgumentsError(invalidArgs)
+	try:
+		test=socket.gethostbyname(TCS['name'])
+	except:
+		traceback.print_exc()
+		print("Invalid server name")
+		sys.exit(-1)
 
 
 

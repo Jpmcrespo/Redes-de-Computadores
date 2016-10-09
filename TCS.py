@@ -85,6 +85,7 @@ def validateArgs():
 		sys.exit(-1)
 	except:
 		raise ArgumentsError(invalidArgs)
+	
 
 #---------------------------------------------------------------------------------
 #							Protocol Syntax Verification
@@ -161,6 +162,9 @@ def main():
 				Msg="SUR ERR\n"
 			finally:
 				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
+		else:
+			Msg="Invalid Request\n"
+			UDP_socket.sendto(Msg.encode(), (Host_Address,Host_Port))
 
 
 
