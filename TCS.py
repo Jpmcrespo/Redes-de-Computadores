@@ -2,6 +2,8 @@
 import socket
 import sys
 import traceback
+import time
+
 BUFFER_SIZE=1024
 invalidArgs='\nInvalid arguments.\nusage: python3 TCS.py [-p TCSport]'
 portMsg="port must be an integer between 0-65535"
@@ -24,7 +26,6 @@ def sendList(sock, ipAddress, port, lst):
 	else:
 		Msg= "ULR "+str(len(lst))+ " "
 		Msg+=" ".join(lst)+ "\n"
-
 
 	sock.sendto(Msg.encode(), (ipAddress, port))
 

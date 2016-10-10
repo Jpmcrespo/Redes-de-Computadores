@@ -3,6 +3,7 @@ import socket
 import sys
 import signal
 import os
+import time
 
 BUFFER_SIZE=1024
 
@@ -153,6 +154,7 @@ def sendBack(Client, language, filename):
 		size-=len(buff)
 	print("done")
 	Client['socket'].send("\n".encode())
+	Client['socket'].shutdown(socket.SHUT_WR)
 
 
 
@@ -222,7 +224,6 @@ def main():
 		try:
 			Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
 			translate(Client, language,port)
-			Client['socket'].close()
 		except KeyboardInterrupt:
 			UnRegisterServer(TCS,language,port)
 			sys.exit()
