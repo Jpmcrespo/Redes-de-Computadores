@@ -27,6 +27,10 @@ def protocolSyntaxVerification(msg):
 		return False
 	return True
 
+def protocolSyntaxVerification2(msg):
+	if "  " in msg or msg[0]==" " or " \n" in msg:
+		return False
+	return True
 
 def RegisterServer(TCS, language,port):
 	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -89,16 +93,18 @@ def translateWordList(Client, language, wordlist):
 	Client['socket'].send(message.encode())
 
 
-def receiveFile(Client, size, extradata):
+def receiveFile(Client, size):
 	file=open("TRSreceived.png","wb")
-
+	buff=""
 	print("receiving " +str(size)+" bytes")
-	file.write(extradata)
-	size-=len(extradata)
-	while(size>0):
+	while(size>-1):
 		buff=Client['socket'].recv(BUFFER_SIZE)
 		file.write(buff)
 		size-=len(buff)
+	if buff[-1]!=10:
+		print(buff[-1])
+		Client['socket'].send('TRR ERR\n'.encode())
+		return
 	print("done")
 	file.seek(-1, os.SEEK_END)
 	file.truncate()
@@ -126,14 +132,14 @@ def translate(Client, language,port):
 
 
 		elif received.split()[1].decode()=="f":
+			protocolSyntaxVerification2(received.decode())
 			received=received.split(b' ',4)   	#nao verificamos se segue o protocolo tipo espaço espaço e \n
 			if len(received)!=5:
 				Client['socket'].send('TRR ERR\n'.encode())
 				return
 			for i in range(4):
 				received[i]=received[i].decode()
-			extradata=received[-1]
-			receiveFile(Client, int(received[3]), extradata)
+			receiveFile(Client, int(received[3]))
 			sendBack(Client, language, received[2])
 
 	else:

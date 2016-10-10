@@ -33,6 +33,8 @@ def requestWordTanslation(TRS, word):
 	response=sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
 	if response=="TRR NTA\n":
 		print(TRS['ip']+": ERROR: One or more of the words you requested have no valid translation.")
+	elif response=="TRR ERR\n":
+		print("An error ocurred in translation                                                                   ")
 	else:
 		print (TRS['ip']+": "+" ".join(response.split()[3:]))
 
@@ -64,8 +66,9 @@ def sendForeignFile(TRS,filename):
 		buff=file.read(BUFFER_SIZE)
 		TRS['socket'].send(buff)
 		size-=len(buff)
-	print("done")
 	TRS['socket'].send("\n".encode())
+	print("done")
+	
 
 
 #----------------------------Receive translated file-------------------------------
@@ -74,26 +77,24 @@ def rcvTransFile(TRS):
 	'''receives the translated file from TRS'''
 
 	received= TRS['socket'].recv(BUFFER_SIZE)
-	received=received.split(b' ',4)
-	for i in range(4):
-		received[i]=received[i].decode()
+	received=received.decode().split()
 
 	if received[0]=="TRR":			#outros casos, try except
 		if received[1]=="f":
-			extradata=received[-1]
-			receiveFile(TRS, received[2], int(received[3]), extradata)
+			receiveFile(TRS, received[2], int(received[3]))
+		elif received[1]=="ERR":
+			print("An error ocurred in translation")
 
 
 
 
-def receiveFile(TRS, name, size, extradata):
+def receiveFile(TRS, name, size):
 	'''auxiliary function to rcvTransFile'''
 
 	file=open(name.rsplit(".",1)[0]+"RECEIVED"+"."+name.rsplit(".",1)[1],"wb")
 
 	print("receiving " +str(size)+" bytes")
-	file.write(extradata)
-	size-=len(extradata)
+	
 	i=0
 	while(size>0):
 		buff=TRS['socket'].recv(BUFFER_SIZE)
