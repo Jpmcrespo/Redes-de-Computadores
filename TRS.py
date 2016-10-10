@@ -44,10 +44,11 @@ def RegisterServer(TCS, language,port):
 		if command[1]=="OK":
 			print ("Successfully registered Translation Server.")
 		elif command[1]=="NOK":
-			print ("Registration refused.")
+			print ("Registration refused, exiting")
+			sys.exit(-1)
 		elif command[1]=="ERR":
-			print ("Registration Error.")
-			sys.exit()
+			print ("Registration Error, exiting")
+			sys.exit(-1)
 
 
 def UnRegisterServer(TCS, language,port):
