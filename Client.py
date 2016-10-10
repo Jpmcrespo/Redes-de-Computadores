@@ -28,7 +28,7 @@ def sendMsg(sock, ipAddress, port, message):
 def requestWordTanslation(TRS, word):
 	'''requests and prints a translated word'''
 
-	TRS['socket'].connect((TRS['ip'],TRS['port']))
+	TRS['socket'].connect((TRS['ip'] ,TRS['port']))
 	message = "TRQ t "+str(len(word.split()))+" "+ word+ "\n"
 	response=sendMsg(TRS['socket'],TRS['ip'],TRS['port'], message)
 	if response=="TRR NTA\n":
@@ -57,7 +57,7 @@ def sendForeignFile(TRS,filename):
 	file=open(filename,"rb")
 	size=os.path.getsize(filename)
 
-	TRS['socket'].connect((TRS['ip'],TRS['port']))
+	TRS['socket'].connect((TRS['ip'] ,TRS['port']))
 	message= "TRQ f " + filename + " " + str(size) + " "
 
 	TRS['socket'].sendto(message.encode(), (TRS['ip'], TRS['port']))
@@ -153,17 +153,13 @@ def validateArgs(TCS):
 			else:
 				raise ArgumentsError(invalidArgs)
 	except ValueError as e:
-		traceback.print_exc()
-		print ("port must be an integer between 0-65535")
-		sys.exit(-1)
+		sys.exit("port must be an integer between 0-65535")
 	except:
 		raise ArgumentsError(invalidArgs)
 	try:
 		test=socket.gethostbyname(TCS['name'])
 	except:
-		traceback.print_exc()
-		print("Invalid server name")
-		sys.exit(-1)
+		sys.exit("Invalid server name")
 
 
 
@@ -223,9 +219,13 @@ def main():
 				return
 			else:
 				print ("command not found")
-
+		except FileNotFoundError as err:
+			print (err.string())
 		except socket.timeout:
 			print ('request timed out, please try again')
+		except socket.error as err:
+			sys.exit("Connection Failed: " + str(err[1]))
+
 
 
 

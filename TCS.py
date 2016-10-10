@@ -81,9 +81,7 @@ def validateArgs():
 		else:
 			return port
 	except ValueError as e:
-		traceback.print_exc()
-		print (portMsg)
-		sys.exit(-1)
+		sys.exit(portMsg)
 	except:
 		raise ArgumentsError(invalidArgs)
 	
