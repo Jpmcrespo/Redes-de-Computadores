@@ -64,13 +64,13 @@ def UnRegisterServer(language, name, port, LanguageList ):
 
 def validateArgs():
 	'''validates the arguments given to the program upon runtime'''
-
-	arguments=sys.argv
-	port=58056
-	if len(arguments)>3:
-		raise ArgumentsError(invalidArgs)
-
 	try:
+		arguments=sys.argv
+		port=58056
+		if len(arguments)>3:
+			raise ArgumentsError(invalidArgs)
+
+	
 		if len(arguments)>2:
 			if arguments[1]=="-p":
 				port=int(arguments[2])
@@ -82,8 +82,10 @@ def validateArgs():
 			return port
 	except ValueError as e:
 		sys.exit(portMsg)
-	except:
-		raise ArgumentsError(invalidArgs)
+	except IndexError:
+		sys.exit(invalidArgs)
+	except ArgumentsError as err:
+		sys.exit(err)
 	
 
 #---------------------------------------------------------------------------------
@@ -168,6 +170,11 @@ def main():
 
 
 
+#valueError, socketerror
 
+try:
+	
+	main()
 
-main()
+except socket.error as error:
+	sys.exit(error)

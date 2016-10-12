@@ -6,7 +6,7 @@ import traceback
 
 BUFFER_SIZE=1024
 ListMSG="ULQ\n"
-invalidArgs='\nInvalid arguments.\nusage: python3 Client.py [-n TCSname] [-p TCSport]'
+invalidArgs='Invalid arguments.\nusage: python3 Client.py [-n TCSname] [-p TCSport]'
 
 class ArgumentsError(Exception):
 	def __init__(self, message):
@@ -34,7 +34,7 @@ def requestWordTanslation(TRS, word):
 	if response=="TRR NTA\n":
 		print(TRS['ip']+": ERROR: One or more of the words you requested have no valid translation.")
 	elif response=="TRR ERR\n":
-		print("An error ocurred in translation                                                                   ")
+		print("An error ocurred in translation")
 	else:
 		print (TRS['ip']+": "+" ".join(response.split()[3:]))
 
@@ -84,6 +84,8 @@ def rcvTransFile(TRS):
 			receiveFile(TRS, received[2], int(received[3]))
 		elif received[1]=="ERR":
 			print("An error ocurred in translation")
+		elif received[1]=="NTA":
+			print ("No available translation for this file")
 
 
 
@@ -118,11 +120,16 @@ def updateLanguageList(TCS):
 	lst=sendMsg(TCS['socket'], socket.gethostbyname(TCS['name']), TCS['port'], ListMSG).split()
 	languages=[]
 	i=1
-	if lst[0]=="ULR" and lst[1]!="EOF" and lst[1]!="ERR":
-		languages=lst[2:]
-		for lang in languages:
-			print (str(i)+"- "+lang)
-			i+=1
+	if lst[0]=="ULR" :
+		if lst[1]=="EOF":
+			print ('No languages available to translate') 
+		elif lst[1]=="ERR":
+			print ('Error requesting language list')
+		else:
+			languages=lst[2:]
+			for lang in languages:
+				print (str(i)+"- "+lang)
+				i+=1
 	else:
 		print (lst[0] + " "+ lst[1])
 
@@ -154,13 +161,10 @@ def validateArgs(TCS):
 				raise ArgumentsError(invalidArgs)
 	except ValueError as e:
 		sys.exit("port must be an integer between 0-65535")
-	except:
-		raise ArgumentsError(invalidArgs)
-	try:
-		test=socket.gethostbyname(TCS['name'])
-	except:
-		sys.exit("Invalid server name")
-
+	except IndexError:
+		sys.exit(invalidArgs)
+	except ArgumentsError as err:
+		sys.exit(err)
 
 
 #---------------------------------------------------------------------------------
@@ -201,7 +205,9 @@ def main():
 				languages=updateLanguageList(TCS)
 
 			elif command[0]=="request":   #se fizer logo request crasha tudo
-
+				if languages==[]:
+					print ("No languages to translate, please update your list with the command 'list'")
+					continue
 				TRS=requestTRSCred(TCS, languages[int(command[1])-1])
 				TRS['socket']=socket.socket(socket.AF_INET,socket.SOCK_STREAM) 
 				TRS['socket'].settimeout(5)
@@ -220,7 +226,7 @@ def main():
 			else:
 				print ("command not found")
 		except FileNotFoundError as err:
-			print (err.string())
+			print (err.argv)
 		except socket.timeout:
 			print ('request timed out, please try again')
 		except socket.error as err:

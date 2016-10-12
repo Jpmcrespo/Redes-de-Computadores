@@ -7,7 +7,7 @@ import time
 
 BUFFER_SIZE=1024
 
-invalidArgs='\nInvalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]'
+invalidArgs='Invalid arguments.\nusage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]'
 portMsg="port must be an integer between 0-65535"
 
 class ArgumentsError(Exception):
@@ -20,67 +20,82 @@ def sendMsg(sock, ipAddress, port, message):
 	response=sock.recv(BUFFER_SIZE)
 	return (response.decode())
 
-
+#---------------------------------------------------------------------------------
+#								Protocol Verification
+#---------------------------------------------------------------------------------
 
 def protocolSyntaxVerification(msg):
+	'''Protocol Verification for most messages'''
 	if "  " in msg or msg[-1]!="\n" or msg[0]==" " or " \n" in msg:
 		return False
 	return True
 
 def protocolSyntaxVerification2(msg):
+	'''Protocol Verification for file transfer case'''
 	if "  " in msg or msg[0]==" " or " \n" in msg:
 		return False
 	return True
 
+
+#---------------------------------------------------------------------------------
+#								TCS Communication
+#---------------------------------------------------------------------------------
+
+#-------------------------------Registration--------------------------------------
 def RegisterServer(TCS, language,port):
-	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	#no need to bind anything because the system allready binds sockets that send stuff
-	#you only need to bind sockets that receive before sending, which is not the case
-	RegMsg="SRG "+ language+ " "+ socket.gethostname()+" "+ str(port)+"\n"
-	command=sendMsg(UDP_socket, TCS['ip'], TCS['port'], RegMsg).split()
-	UDP_socket.close()
+	'''Informs TCS that this server is available for the translation of the provided language'''
+	try:
+		
+		UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		UDP_socket.settimeout(5)
+		#no need to bind anything because the system allready binds sockets that send stuff
+		#you only need to bind sockets that receive before sending, which is not the case
+		RegMsg="SRG "+ language+ " "+ socket.gethostname()+" "+ str(port)+"\n"
+		command=sendMsg(UDP_socket, TCS['ip'], TCS['port'], RegMsg).split()
+		UDP_socket.close()
 
-	if command[0]=="SRR":
-		if command[1]=="OK":
-			print ("Successfully registered Translation Server.")
-		elif command[1]=="NOK":
-			print ("Registration refused, exiting")
-			sys.exit(-1)
-		elif command[1]=="ERR":
-			print ("Registration Error, exiting")
-			sys.exit(-1)
-
-
+		if command[0]=="SRR":
+			if command[1]=="OK":
+				print ("Successfully registered Translation Server.")
+			elif command[1]=="NOK":
+				print ("Registration refused, exiting")
+				sys.exit(-1)
+			elif command[1]=="ERR":
+				print ("Registration Error, exiting")
+				sys.exit(-1)
+	except socket.timeout:
+		sys.exit("Request to register timed out.\nExiting...")
+#-----------------------------UnRegistration--------------------------------------
 def UnRegisterServer(TCS, language,port):
-	UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	#no need to bind anything because the system allready binds sockets that send stuff
-	#you only need to bind sockets that receive before sending, which is not the case
-	RegMsg="SUN "+ language+ " "+ socket.gethostname()+" "+ str(port)+"\n"
-	command=sendMsg(UDP_socket, TCS['ip'], TCS['port'], RegMsg).split()
-	UDP_socket.close()
+	'''Informs TCS that this server is no longer available for the translation of the provided language'''
+	try:
+		
+		UDP_socket= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		UDP_socket.settimeout(5)
+		#no need to bind anything because the system allready binds sockets that send stuff
+		#you only need to bind sockets that receive before sending, which is not the case
+		RegMsg="SUN "+ language+ " "+ socket.gethostname()+" "+ str(port)+"\n"
+		command=sendMsg(UDP_socket, TCS['ip'], TCS['port'], RegMsg).split()
+		UDP_socket.close()
 
-	if command[0]=="SUR":
-		if command[1]=="OK":
-			print ("Successfully unregistered Translation Server.")
-		elif command[1]=="NOK":
-			print ("Unregistration refused.")
-		elif command[1]=="ERR":
-			print ("Unregistration Error.")
-			sys.exit()
+		if command[0]=="SUR":
+			if command[1]=="OK":
+				print ("Successfully unregistered Translation Server.")
+			elif command[1]=="NOK":
+				print ("Unregistration refused.")
+			elif command[1]=="ERR":
+				print ("Unregistration Error.")
+				sys.exit()
+	except socket.timeout:
+		sys.exit("Request to unregister timed out.\nExiting...")
 
-def getTranslation(file, word):
-	file.seek(0)
-	for line in file:
-		trans=line.split()
-		if word==trans[0]:
 
-			return trans[1]
-	return "NTA"
-
-	#o que acontece quando falha scrubs??
-
+#---------------------------------------------------------------------------------
+#								Word Translation
+#---------------------------------------------------------------------------------
 
 def translateWordList(Client, language, wordlist):
+	'''Sends to the client the translated wordlist'''
 	result=""
 	langFile= open(language, 'r')
 	for word in wordlist:
@@ -94,6 +109,24 @@ def translateWordList(Client, language, wordlist):
 	Client['socket'].send(message.encode())
 
 
+
+def getTranslation(file, word):
+	'''finds and gets the translation of the specified word'''
+	file.seek(0)
+	for line in file:
+		trans=line.split()
+		if word==trans[0]:
+
+			return trans[1]
+	return "NTA"
+
+
+
+
+#---------------------------------------------------------------------------------
+#								File Translation
+#---------------------------------------------------------------------------------
+
 def receiveFile(Client, size):
 	file=open("TRSreceived.png","wb")
 	buff=""
@@ -103,10 +136,8 @@ def receiveFile(Client, size):
 		file.write(buff)
 		size-=len(buff)
 	if buff[-1]!=10:
-		print(buff[-1])
-		Client['socket'].send('TRR ERR\n'.encode())
-		return
-	print("done")
+		raise ValueError
+		
 	file.seek(-1, os.SEEK_END)
 	file.truncate()
 	file.close()
@@ -115,40 +146,32 @@ def receiveFile(Client, size):
 def translate(Client, language,port):
 	#FaltaPasserelle
 
-	received= Client['socket'].recv(BUFFER_SIZE)
-	print(socket.gethostbyaddr(Client["ip"])[0]+" "+str(Client["port"])+": "+" ".join((received[3:].decode()).split()))
-	if received[:3].decode()=="TRQ":			#variavel auxiliar ao received?
-		if received.split()[1].decode()=="t":
-			#if not protocolSyntaxVerification(received.decode()):
-			#	Msg="Invalid Request\n"
-			#	Client['socket'].sendto(Msg.encode(), (ipAddress, port))
-			#		return
-			received=received.split()
-			if int(received[2])!=len(received)-3:
-				Client['socket'].send('TRR ERR\n'.encode())
-				return
-			for i in range(len(received)):
-				received[i]=received[i].decode()
+	received= Client['socket'].recv(BUFFER_SIZE).decode().split()
+	#print(socket.gethostbyaddr(Client["ip"])[0]+" "+str(Client["port"])+": "+received[])
+	if received[0]=="TRQ":			
+		if received[1]=="t":
+			# protocolo
+			if int(received[2])!=len(received)-3: 
+				raise ValueError
+
 			translateWordList(Client, language, received[3:])
 
 
-		elif received.split()[1].decode()=="f":
-			protocolSyntaxVerification2(received.decode())
-			received=received.split(b' ',4)   	#nao verificamos se segue o protocolo tipo espaço espaço e \n
-			if len(received)!=5:
-				Client['socket'].send('TRR ERR\n'.encode())
-				return
-			for i in range(4):
-				received[i]=received[i].decode()
+		elif received[1]=="f":
+			protocolSyntaxVerification2(" ".join(received)) #if 
+
+			if len(received)!=4:
+				raise IndexError
+			
 			receiveFile(Client, int(received[3]))
 			sendBack(Client, language, received[2])
 
 	else:
-		Client['socket'].send('Invalid Request\n'.encode())
+		raise ValueError
 
 
 def sendBack(Client, language, filename):
-	langFile= open(language+"Img", 'r')
+	langFile= open(language+"Img", 'r')		#fails to open
 	filename=getTranslation(langFile, filename)
 	file=open(filename,"rb")
 	size=os.path.getsize(filename)
@@ -171,15 +194,15 @@ def sendBack(Client, language, filename):
 
 def validateArgs(TCS):
 	'''validates the arguments given to the program upon runtime'''
-
-	arguments=sys.argv
-	port=59000
-	if len(arguments)%2!=0:
-		raise ArgumentsError (invalidArgs)
-
-	i=2
-	p,n,e=1,1,1
 	try:
+		arguments=sys.argv
+		port=59000
+		if len(arguments)%2!=0:
+			raise ArgumentsError(invalidArgs)
+
+		i=2
+		p,n,e=1,1,1
+	
 		while i<len(arguments):
 			if arguments[i]=="-p" and p:
 				port= int(arguments[i+1])
@@ -197,43 +220,50 @@ def validateArgs(TCS):
 			else:
 				raise InputError (invalidArgs)
 			i+=2
+		test=socket.gethostbyname(TCS['name'])
 		return port
 	except ValueError as e:
-		traceback.print_exc()
-		print ("port must be an integer between 0-65535")
-		sys.exit(-1)
-	except:
-		raise ArgumentsError(invalidArgs)
-	try:
-		test=socket.gethostbyname(TCS['name'])
-	except:
-		traceback.print_exc()
-		print("Invalid server name")
-		sys.exit(-1)
+		sys.exit("port must be an integer between 0-65535")
+	except ArgumentsError as error:
+		sys.exit(error)
+	except IndexError:
+		sys.exit(invalidArgs)
+	
 
+
+#---------------------------------------------------------------------------------
+#										Main
+#---------------------------------------------------------------------------------
 
 def main():
+	try:
+		language=sys.argv[1]
+		TCS={'name':socket.gethostname(),'port':58056}
+		TCS['ip']=socket.gethostbyname(TCS['name'])
 
-	language=sys.argv[1]
-	TCS={'name':socket.gethostname(),'port':58056}
-	TCS['ip']=socket.gethostbyname(TCS['name'])
-
-	port=validateArgs(TCS)
+		port=validateArgs(TCS)
 
 
-	TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))
-	TCP_socket.listen(1)
-	Client={}
-	RegisterServer(TCS, language,port)
-	#falta fazer a coisa quando se faz CTRL-C
-	while(1):
-		try:
-			Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
-			translate(Client, language,port)
-		except KeyboardInterrupt:
-			UnRegisterServer(TCS,language,port)
-			sys.exit()
+		TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))
+		TCP_socket.listen(1)
+		Client={}
+		RegisterServer(TCS, language,port)
+		while(1):
+			try:
+				Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
+				translate(Client, language,port) #verificar exceptions e verificar quando o ficheiro nao existe
+			except KeyboardInterrupt:
+				UnRegisterServer(TCS,language,port)
+				sys.exit()
+			except FileNotFoundError:
+				Client['socket'].send('TRR NTA\n'.encode())
+			except:
+				Client['socket'].send('TRR ERR\n'.encode())
+
+	except socket.error as error:
+		sys.exit(error)
 
 
 main()
+
