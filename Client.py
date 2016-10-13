@@ -182,6 +182,15 @@ def requestTRSCred(TCS, language):
 	print(cred[1]+" "+cred[2])
 	return {'ip': cred[1], 'port' : int(cred[2])}
 
+#---------------------------------------------------------------------------------
+#								Protocol Verification
+#---------------------------------------------------------------------------------
+
+def inputSyntaxVerification(msg):
+	'''Protocol Verification for user messages'''
+	if "  " in msg or msg[0]==" " or " \n" in msg:
+		return False
+	return True
 
 
 
@@ -198,13 +207,17 @@ def main():
 	languages=[]
 
 	while(True):
-		command= input(">").split()
+		command= input(">")
+		if not inputSyntaxVerification(command):
+			print ("Invalid Input")
+			continue
+		command=command.split()
 		try:
 			if command[0]=="list":
 				TCS['socket'].settimeout(2)
 				languages=updateLanguageList(TCS)
 
-			elif command[0]=="request":   #se fizer logo request crasha tudo
+			elif command[0]=="request":   
 				if languages==[]:
 					print ("No languages to translate, please update your list with the command 'list'")
 					continue
