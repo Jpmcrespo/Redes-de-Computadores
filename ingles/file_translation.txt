@@ -1,0 +1,5 @@
+jupiter_ing.jpeg Jupiter.png
+mars_ing.jpeg Marte.jpg
+mercury.jpg Mercurio.jpeg
+saturn.png Saturno.jpeg
+venus_ing.jpg Venus.jpg

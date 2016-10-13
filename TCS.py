@@ -124,8 +124,10 @@ def main():
 		command,(Host_Address,Host_Port)= UDP_socket.recvfrom(BUFFER_SIZE)    #DICIONARIO
 		command= command.decode()
 		if not protocolSyntaxVerification(command):
-			Msg="Invalid Request\n"
-			UDP_socket.sendto(Msg.encode(), (Host_Address,Host_Port))
+			print("Invalid Request: Protocol mismatch")
+			#Msg="Invalid Request\n"
+			
+			#UDP_socket.sendto(Msg.encode(), (Host_Address,Host_Port))
 			continue
 		command=command.split()
 		if command[0]=="ULQ":
@@ -164,8 +166,9 @@ def main():
 			finally:
 				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 		else:
-			Msg="Invalid Request\n"
-			UDP_socket.sendto(Msg.encode(), (Host_Address,Host_Port))
+			print("Invalid Request: Protocol mismatch")
+			#Msg="Invalid Request\n"
+			#UDP_socket.sendto(Msg.encode(), (Host_Address,Host_Port))
 
 
 
@@ -178,3 +181,5 @@ try:
 
 except socket.error as error:
 	sys.exit(error)
+except KeyboardInterrupt:
+	sys.exit("Exiting...\n")
