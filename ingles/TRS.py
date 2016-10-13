@@ -248,10 +248,9 @@ def main():
 	try:
 		language=sys.argv[1]
 		TCS={'name':socket.gethostname(),'port':58056}
-		TCS['ip']=socket.gethostbyname(TCS['name'])
-
+	
 		port=validateArgs(TCS)
-
+		TCS['ip']=socket.gethostbyname(TCS['name'])
 
 		TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))

@@ -4,6 +4,7 @@ import sys
 import signal
 import os
 import time
+import traceback
 
 BUFFER_SIZE=1024
 
@@ -87,7 +88,7 @@ def UnRegisterServer(TCS, language,port):
 				print ("Unregistration Error.")
 				sys.exit()
 	except socket.timeout:
-		sys.exit("Request to unregister timed out.\nExiting...")
+		sys.exit("Request to unregister timed out.\nExiting...\n")
 
 
 #---------------------------------------------------------------------------------
@@ -146,8 +147,10 @@ def receiveFile(Client, size):
 def translate(Client, language,port):
 	#FaltaPasserelle
 
-	aux= Client['socket'].recv(BUFFER_SIZE).decode()
+	aux= Client['socket'].recv(BUFFER_SIZE)
+	aux=aux.decode()
 	received=aux.split()
+
 	#print(socket.gethostbyaddr(Client["ip"])[0]+" "+str(Client["port"])+": "+received[])
 	if received[0]=="TRQ":			
 		if received[1]=="t":
@@ -166,7 +169,8 @@ def translate(Client, language,port):
 			  raise ValueError 
 
 			if len(received)!=4:
-				raise IndexError
+
+			  raise IndexError
 			
 			receiveFile(Client, int(received[3]))
 			sendBack(Client, language, received[2])
@@ -244,11 +248,12 @@ def main():
 	try:
 		language=sys.argv[1]
 		TCS={'name':socket.gethostname(),'port':58056}
-		TCS['ip']=socket.gethostbyname(TCS['name'])
+		
 
 		port=validateArgs(TCS)
 
-
+		TCS['ip']=socket.gethostbyname(TCS['name'])
+		
 		TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))
 		TCP_socket.listen(1)
@@ -264,6 +269,7 @@ def main():
 			except FileNotFoundError:
 				Client['socket'].send('TRR NTA\n'.encode())
 			except:
+				traceback.print_exc()
 				Client['socket'].send('TRR ERR\n'.encode())
 
 	except socket.error as error:
