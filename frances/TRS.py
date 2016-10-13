@@ -186,6 +186,7 @@ def sendBack(Client, language, filename):
 	size=os.path.getsize(filename)
 	message= "TRR f " + filename + " " + str(size) + " "
 	Client['socket'].send(message.encode())
+	time.sleep(0.005)
 	print("Sending back "+str(size)+" bytes")
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
@@ -253,7 +254,7 @@ def main():
 		port=validateArgs(TCS)
 
 		TCS['ip']=socket.gethostbyname(TCS['name'])
-		
+
 		TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		TCP_socket.bind((socket.gethostbyname(socket.gethostname()),port))
 		TCP_socket.listen(1)
