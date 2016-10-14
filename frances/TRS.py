@@ -97,6 +97,7 @@ def UnRegisterServer(TCS, language,port):
 
 def translateWordList(Client, language, wordlist):
 	'''Sends to the client the translated wordlist'''
+	print (Client['ip'] + " "+ str(Client['port'])+ ": "+ " ".join(wordlist))
 	result=""
 	langFile= open("text_translation.txt", 'r')
 	for word in wordlist:
@@ -131,27 +132,26 @@ def getTranslation(file, word):
 def receiveFile(Client, size):
 	file=open("TRSreceived.png","wb")
 	buff=""
-	print("receiving " +str(size)+" bytes")
+	
 	while(size>-1):
 		buff=Client['socket'].recv(BUFFER_SIZE)
 		file.write(buff)
 		size-=len(buff)
 	if buff[-1]!=10:
 		raise ValueError
-		
+	
+	
 	file.seek(-1, os.SEEK_END)
 	file.truncate()
 	file.close()
-
+	print (str(os.path.getsize("TRSreceived.png")) + " Bytes received")
 
 def translate(Client, language,port):
-	#FaltaPasserelle
 
 	aux= Client['socket'].recv(BUFFER_SIZE)
 	aux=aux.decode()
 	received=aux.split()
 
-	#print(socket.gethostbyaddr(Client["ip"])[0]+" "+str(Client["port"])+": "+received[])
 	if received[0]=="TRQ":			
 		if received[1]=="t":
 			# protocolo
@@ -172,6 +172,7 @@ def translate(Client, language,port):
 
 			  raise IndexError
 			
+			print (Client['ip']+ " "+ str(Client['port'])+ " " +received[2])
 			receiveFile(Client, int(received[3]))
 			sendBack(Client, language, received[2])
 
@@ -180,19 +181,18 @@ def translate(Client, language,port):
 
 
 def sendBack(Client, language, filename):
-	langFile= open("file_translation.txt", 'r')		#fails to open
+	langFile= open("file_translation.txt", 'r')		
 	filename=getTranslation(langFile, filename)
 	file=open(filename,"rb")
 	size=os.path.getsize(filename)
+	print (filename+ " ("+str(size)+" Bytes)")
 	message= "TRR f " + filename + " " + str(size) + " "
 	Client['socket'].send(message.encode())
 	time.sleep(0.005)
-	print("Sending back "+str(size)+" bytes")
 	while(size>0):
 		buff=file.read(BUFFER_SIZE)
 		Client['socket'].send(buff)
 		size-=len(buff)
-	print("done")
 	Client['socket'].send("\n".encode())
 	Client['socket'].shutdown(socket.SHUT_WR)
 
@@ -249,10 +249,8 @@ def main():
 	try:
 		language=sys.argv[1]
 		TCS={'name':socket.gethostname(),'port':58056}
-		
-
+	
 		port=validateArgs(TCS)
-
 		TCS['ip']=socket.gethostbyname(TCS['name'])
 
 		TCP_socket= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -263,7 +261,7 @@ def main():
 		while(1):
 			try:
 				Client['socket'] , (Client['ip'], Client['port'])=TCP_socket.accept()
-				translate(Client, language,port) #verificar exceptions e verificar quando o ficheiro nao existe
+				translate(Client, language,port) 
 			except KeyboardInterrupt:
 				UnRegisterServer(TCS,language,port)
 				sys.exit()

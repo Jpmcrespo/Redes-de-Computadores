@@ -120,14 +120,10 @@ def main():
 	UDP_socket.bind((socket.gethostbyname(socket.gethostname()), port))
 
 	while(True):
-		#passerelle pah isto ta mm horrivel vv
 		command,(Host_Address,Host_Port)= UDP_socket.recvfrom(BUFFER_SIZE)    #DICIONARIO
 		command= command.decode()
 		if not protocolSyntaxVerification(command):
 			print("Invalid Request: Protocol mismatch")
-			#Msg="Invalid Request\n"
-			
-			#UDP_socket.sendto(Msg.encode(), (Host_Address,Host_Port))
 			continue
 		command=command.split()
 		if command[0]=="ULQ":
@@ -167,14 +163,7 @@ def main():
 				UDP_socket.sendto(Msg.encode(), (Host_Address, Host_Port))
 		else:
 			print("Invalid Request: Protocol mismatch")
-			#Msg="Invalid Request\n"
-			#UDP_socket.sendto(Msg.encode(), (Host_Address,Host_Port))
-
-
-
-
-#valueError, socketerror
-
+		
 try:
 	
 	main()

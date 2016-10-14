@@ -68,7 +68,6 @@ def sendForeignFile(TRS,filename):
 		TRS['socket'].send(buff)
 		size-=len(buff)
 	TRS['socket'].send("\n".encode())
-	print("done")
 	
 
 
@@ -80,7 +79,7 @@ def rcvTransFile(TRS):
 	received= TRS['socket'].recv(BUFFER_SIZE)
 	received=received.decode().split()
 
-	if received[0]=="TRR":			#outros casos, try except
+	if received[0]=="TRR":			
 		if received[1]=="f":
 			receiveFile(TRS, received[2], int(received[3]))
 		elif received[1]=="ERR":
@@ -93,17 +92,18 @@ def rcvTransFile(TRS):
 
 def receiveFile(TRS, name, size):
 	'''auxiliary function to rcvTransFile'''
-	file=open(name.rsplit(".",1)[0]+"RECEIVED"+"."+name.rsplit(".",1)[1],"wb")
-	print("receiving " +str(size)+" bytes")
+
+	file=open(name,"wb")
+	
 	while(size>0):
 		buff=TRS['socket'].recv(BUFFER_SIZE)
 		file.write(buff)
 		size-=len(buff)
-	print("done")
+
 	file.seek(-1, os.SEEK_END)
 	file.truncate()
 	file.close()
-	print("END OF FILE TRANSLATION")
+	print("received file "+name+ ' ('+str(os.path.getsize(name))+ " Bytes)")
 
 
 
@@ -180,7 +180,6 @@ def requestTRSCred(TCS, language):
 	elif cred[1]=="ERR":
 		print("Error requesting TRS credentials")
 		return 0
-	#return {'ip': cred[2], 'port' : int(cred[3])}
 	print(cred[1]+" "+cred[2])
 	return {'ip': cred[1], 'port' : int(cred[2])}
 
