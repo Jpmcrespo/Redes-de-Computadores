@@ -8,6 +8,7 @@ TRS:
 Location: ./(language)/TRS.py
 usage: python3 TRS.py language [-p TRSport] [-n TCSname] [-e TCSport]
 TRS's available: ingles, frances, espanhol
+only the last received file is stored, in TRSreceived.png
 
 TCS:
 Location: Current directory

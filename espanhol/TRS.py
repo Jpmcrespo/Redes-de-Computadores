@@ -81,7 +81,7 @@ def UnRegisterServer(TCS, language,port):
 
 		if command[0]=="SUR":
 			if command[1]=="OK":
-				print ("Successfully unregistered Translation Server.")
+				print ("Successfully unregistered Translation Server.\nExiting...")
 			elif command[1]=="NOK":
 				print ("Unregistration refused.")
 			elif command[1]=="ERR":

@@ -1,5 +1,9 @@
 jupiter_fr.jpg Jupiter.png
+
 mars_fr.jpg Marte.jpg
+
 Frederic_Borat.jpg Mercurio.jpeg
+
 saturne.jpg Saturno.jpeg
+
 venus_fr.jpg Venus.jpg
