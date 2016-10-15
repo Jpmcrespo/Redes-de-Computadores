@@ -180,6 +180,7 @@ def translate(Client, language,port):
 		raise ValueError
 
 
+
 def sendBack(Client, language, filename):
 	langFile= open("file_translation.txt", 'r')		
 	filename=getTranslation(langFile, filename)
